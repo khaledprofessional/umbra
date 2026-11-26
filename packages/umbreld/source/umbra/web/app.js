@@ -132,7 +132,7 @@ function avatar(agent, size = '') {
 	if (agent?.avatarUrl) {
 		return h('img', {class: `avatar ${size}`, src: agent.avatarUrl, alt: '', loading: 'lazy'})
 	}
-	return h('div', {class: `avatar ${size}`, text: initial(agent?.label ?? agent?.name)})
+	return h('div', {class: `avatar ${size}`, text: initial(agent?.label ?? agent?.name ?? agent?.agentName)})
 }
 
 function openModal(title, body, actions) {

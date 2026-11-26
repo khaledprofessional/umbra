@@ -15,6 +15,7 @@ export type ApprovalRequest = {
 	agentName: string
 	agentType?: string
 	clientName?: string
+	avatarUrl?: string
 	command: string
 	cwd: string
 	reason?: string
@@ -279,12 +280,16 @@ export default class TerminalExecutor {
 			if (matchesAllowlist(command, policy.allowlist)) {
 				effectivePolicy = 'allowlist'
 			} else {
+				const profile = this.#agents.getProfile(actor.tokenId)
 				const decision = await this.#approvals.request(
 					{
 						agentTokenId: actor.tokenId,
 						agentName: actor.name,
 						agentType: actor.agentType,
 						clientName: actor.clientName,
+						avatarUrl: profile?.avatar
+							? `/umbra/api/agents/${actor.tokenId}/avatar?v=${profile.avatar.sha256.slice(0, 12)}`
+							: undefined,
 						command,
 						cwd,
 						reason: input.reason,
