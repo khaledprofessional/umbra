@@ -189,7 +189,7 @@ export default class EdgeGuard {
 		if (
 			publicRequest &&
 			cloudflare.access.enabled &&
-			this.#isProtected(path, config.cloudflare.access.publicProcedures)
+			this.#isProtected(path, config.cloudflare.access.publicProcedures, config.cloudflare.access.protectedPrefixes)
 		) {
 			const token =
 				header(request, 'cf-access-jwt-assertion') ??
@@ -262,7 +262,8 @@ export default class EdgeGuard {
 		if (cloudflare.lockdown) return {ok: false, status: 503, message: 'Emergency lockdown'}
 		if (!cloudflare.access.enabled) return {ok: true}
 		const path = (request.url ?? '/').split('?')[0]
-		if (!this.#isProtected(path, cloudflare.access.publicProcedures)) return {ok: true}
+		if (!this.#isProtected(path, cloudflare.access.publicProcedures, cloudflare.access.protectedPrefixes))
+			return {ok: true}
 		const token = header(request, 'cf-access-jwt-assertion') ?? cookie(request, 'CF_Authorization')
 		if (!token) return {ok: false, status: 403, message: 'Cloudflare Access authentication required'}
 		try {
@@ -306,7 +307,7 @@ export default class EdgeGuard {
 		)
 	}
 
-	#isProtected(path: string, publicProcedures: string[]): boolean {
+	#isProtected(path: string, publicProcedures: string[], protectedPrefixes: string[]): boolean {
 		if (path === '/' || path === '/login' || path === '/favicon.ico' || path === '/manifest.webmanifest') return false
 		if (path.startsWith('/assets/') || path.startsWith('/static/')) return false
 		if (path.startsWith('/api/accounts/')) return false
@@ -326,9 +327,10 @@ export default class EdgeGuard {
 					SENSITIVE_TRPC.some((prefix) => procedure === prefix || procedure.startsWith(prefix)),
 			)
 		}
-		return ['/settings', '/umbra', '/mcp', '/terminal', '/api', '/logs'].some(
-			(prefix) => path === prefix || path.startsWith(`${prefix}/`),
-		)
+		const prefixes = protectedPrefixes.length
+			? protectedPrefixes
+			: ['/settings', '/umbra', '/mcp', '/terminal', '/api', '/logs']
+		return prefixes.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
 	}
 
 	#applyHeaders(
