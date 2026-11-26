@@ -91,6 +91,13 @@ function fail(errors: string[], message: string) {
 	errors.push(message)
 }
 
+function rejectUnknownKeys(value: unknown, allowed: string[], label: string, errors: string[]) {
+	if (!isRecord(value)) return
+	for (const key of Object.keys(value)) {
+		if (!allowed.includes(key)) fail(errors, `${label} has unknown field '${key}'`)
+	}
+}
+
 function validatePath(value: unknown, label: string, errors: string[], {mustBeFile = true} = {}): string | undefined {
 	if (typeof value !== 'string' || !PATH_PATTERN.test(value)) {
 		fail(errors, `${label} must be a safe relative path`)
@@ -106,6 +113,14 @@ function validatePath(value: unknown, label: string, errors: string[], {mustBeFi
 export function validateManifest(input: unknown): PluginValidation {
 	const errors: string[] = []
 	if (!isRecord(input)) return {ok: false, errors: ['Manifest must be a JSON object']}
+	rejectUnknownKeys(
+		input,
+		['schemaVersion', 'id', 'name', 'version', 'description', 'author', 'license', 'apiVersion', 'entry', 'permissions', 'backend', 'ui', 'settings'],
+		'Manifest',
+		errors,
+	)
+	if (isRecord(input.author)) rejectUnknownKeys(input.author, ['name', 'url'], 'author', errors)
+	if (isRecord(input.backend)) rejectUnknownKeys(input.backend, ['events', 'timeoutMs'], 'backend', errors)
 	if (input.schemaVersion !== 1) fail(errors, 'schemaVersion must be 1')
 	if (typeof input.id !== 'string' || !ID_PATTERN.test(input.id)) {
 		fail(errors, 'id must be a reverse-DNS identifier, e.g. com.example.weather')
@@ -174,13 +189,21 @@ export function validateManifest(input: unknown): PluginValidation {
 	if (input.ui !== undefined) {
 		if (!isRecord(input.ui)) fail(errors, 'ui must be an object')
 		else {
+			rejectUnknownKeys(input.ui, ['widgets', 'routes', 'settingsPanels'], 'ui', errors)
+			if (Array.isArray(input.ui.settingsPanels) && input.ui.settingsPanels.length > 0) {
+				fail(errors, 'ui.settingsPanels is not supported by apiVersion 1.0')
+			}
 			const widgets: PluginWidget[] = []
 			if (input.ui.widgets !== undefined) {
 				if (!Array.isArray(input.ui.widgets)) fail(errors, 'ui.widgets must be an array')
 				else {
 					for (const widget of input.ui.widgets.slice(0, 12)) {
+						if (!isRecord(widget)) {
+							fail(errors, 'Each widget must be an object')
+							continue
+						}
+						rejectUnknownKeys(widget, ['id', 'title', 'description', 'size', 'refreshSeconds'], 'widget', errors)
 						if (
-							!isRecord(widget) ||
 							typeof widget.id !== 'string' ||
 							!/^[a-z0-9][a-z0-9-]{0,39}$/.test(widget.id) ||
 							typeof widget.title !== 'string' ||
@@ -214,6 +237,7 @@ export function validateManifest(input: unknown): PluginValidation {
 							fail(errors, 'Each UI route needs an id and title')
 							continue
 						}
+						rejectUnknownKeys(route, ['id', 'title', 'icon', 'entry'], 'route', errors)
 						const routeEntry = validatePath(route.entry, `route '${route.id}' entry`, errors)
 						if (!routeEntry) continue
 						routes.push({
@@ -241,6 +265,7 @@ export function validateManifest(input: unknown): PluginValidation {
 					fail(errors, 'Each setting needs a snake_case key')
 					continue
 				}
+				rejectUnknownKeys(field, ['key', 'label', 'type', 'default', 'description', 'options', 'min', 'max'], 'setting', errors)
 				if (keys.has(field.key)) {
 					fail(errors, `Duplicate setting key: ${field.key}`)
 					continue
@@ -266,12 +291,15 @@ export function validateManifest(input: unknown): PluginValidation {
 					} else setting.default = field.default as string | number | boolean
 				}
 				if (setting.type === 'select') {
-					const options = Array.isArray(field.options)
-						? field.options
-								.filter(isRecord)
-								.filter((option) => typeof option.label === 'string' && typeof option.value === 'string')
-								.map((option) => ({label: String(option.label).slice(0, 60), value: String(option.value).slice(0, 100)}))
-						: []
+					const options: {label: string; value: string}[] = []
+					if (Array.isArray(field.options)) {
+						for (const option of field.options.filter(isRecord).slice(0, 50)) {
+							rejectUnknownKeys(option, ['label', 'value'], 'select option', errors)
+							if (typeof option.label === 'string' && typeof option.value === 'string') {
+								options.push({label: option.label.slice(0, 60), value: option.value.slice(0, 100)})
+							}
+						}
+					}
 					if (!options.length) fail(errors, `Setting '${field.key}' select needs options`)
 					else setting.options = options
 					if (typeof field.default === 'string') setting.default = field.default

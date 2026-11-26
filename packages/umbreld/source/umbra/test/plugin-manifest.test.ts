@@ -42,6 +42,15 @@ describe('plugin manifest', () => {
 		assert.equal(result.ok, false)
 	})
 
+	it('rejects unknown fields at every level', () => {
+		const top = validateManifest({...base, surprise: true})
+		assert.equal(top.ok, false)
+		assert.ok(top.errors.some((error) => error.includes("unknown field 'surprise'")))
+		const nested = validateManifest({...base, ui: {widgets: [{id: 'x', title: 'X', size: 'small', evil: true}]}})
+		assert.equal(nested.ok, false)
+		assert.ok(nested.errors.some((error) => error.includes("unknown field 'evil'")))
+	})
+
 	it('validates file lists against the manifest', () => {
 		assert.deepEqual(validatePluginFiles([{path: 'backend/index.js', content: 'export {}'}], base), [])
 		assert.ok(validatePluginFiles([{path: '../escape.js', content: 'x'}], base).length > 0)
