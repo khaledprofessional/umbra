@@ -53,7 +53,7 @@ describe('plugin sandbox', () => {
 						content: [
 							'export async function activate(ctx) {',
 							"  await ctx.storage.set('activated', true)",
-							"  const metrics = await ctx.metrics()",
+							'  const metrics = await ctx.metrics()',
 							"  ctx.log('info', 'plugins=' + metrics.cpus)",
 							'}',
 							'export async function deactivate() {}',

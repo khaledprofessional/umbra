@@ -115,7 +115,21 @@ export function validateManifest(input: unknown): PluginValidation {
 	if (!isRecord(input)) return {ok: false, errors: ['Manifest must be a JSON object']}
 	rejectUnknownKeys(
 		input,
-		['schemaVersion', 'id', 'name', 'version', 'description', 'author', 'license', 'apiVersion', 'entry', 'permissions', 'backend', 'ui', 'settings'],
+		[
+			'schemaVersion',
+			'id',
+			'name',
+			'version',
+			'description',
+			'author',
+			'license',
+			'apiVersion',
+			'entry',
+			'permissions',
+			'backend',
+			'ui',
+			'settings',
+		],
 		'Manifest',
 		errors,
 	)
@@ -265,13 +279,21 @@ export function validateManifest(input: unknown): PluginValidation {
 					fail(errors, 'Each setting needs a snake_case key')
 					continue
 				}
-				rejectUnknownKeys(field, ['key', 'label', 'type', 'default', 'description', 'options', 'min', 'max'], 'setting', errors)
+				rejectUnknownKeys(
+					field,
+					['key', 'label', 'type', 'default', 'description', 'options', 'min', 'max'],
+					'setting',
+					errors,
+				)
 				if (keys.has(field.key)) {
 					fail(errors, `Duplicate setting key: ${field.key}`)
 					continue
 				}
 				keys.add(field.key)
-				if (typeof field.label !== 'string' || !['string', 'number', 'boolean', 'select'].includes(String(field.type))) {
+				if (
+					typeof field.label !== 'string' ||
+					!['string', 'number', 'boolean', 'select'].includes(String(field.type))
+				) {
 					fail(errors, `Setting '${field.key}' needs a label and a supported type`)
 					continue
 				}
@@ -354,7 +376,8 @@ export function validatePluginFiles(files: PluginFile[], manifest: PluginManifes
 			errors.push(`Unsupported encoding for ${file.path}`)
 			continue
 		}
-		const bytes = file.encoding === 'base64' ? Math.ceil((file.content.length * 3) / 4) : Buffer.byteLength(file.content)
+		const bytes =
+			file.encoding === 'base64' ? Math.ceil((file.content.length * 3) / 4) : Buffer.byteLength(file.content)
 		if (bytes > MAX_FILE_BYTES) errors.push(`File too large: ${file.path}`)
 		total += bytes
 	}

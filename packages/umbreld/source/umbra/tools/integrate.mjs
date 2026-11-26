@@ -29,7 +29,9 @@ function parseArgs(argv) {
 		else if (value === '--check') args.check = true
 		else if (value === '--quiet') args.quiet = true
 		else if (value === '--help') {
-			console.log('Usage: node tools/integrate.mjs [--repo <umbreld>] [--data <umbra data>] [--from <runtime>] [--check]')
+			console.log(
+				'Usage: node tools/integrate.mjs [--repo <umbreld>] [--data <umbra data>] [--from <runtime>] [--check]',
+			)
 			process.exit(0)
 		}
 	}
@@ -68,7 +70,7 @@ const TS_BLOCKS = {
 			'\t\t// <umbra:start>',
 			'\t\t// Start the custom layer once core modules and the HTTP listener exist.',
 			'\t\t// Failures stay contained: a broken plugin or tunnel must never stop umbrelOS.',
-			'\t\tawait this.umbra.start().catch((error) => this.logger.error(\'Failed to start Umbra\', error))',
+			"\t\tawait this.umbra.start().catch((error) => this.logger.error('Failed to start Umbra', error))",
 			'\t\t// </umbra:start>',
 		].join('\n'),
 		position: 'before',
@@ -82,7 +84,7 @@ const TS_BLOCKS = {
 		file: 'source/modules/server/index.ts',
 		anchor: "\t\tthis.app.set('logger', this.logger)",
 		block: [
-			"\t\t// <umbra:server-edge>",
+			'\t\t// <umbra:server-edge>',
 			'\t\t// Public-edge policy: real IP, lockdown, Cloudflare Access, origin lock, rate limits.',
 			'\t\tthis.app.use(this.umbreld.umbra.edgeMiddleware())',
 			'\t\t// <umbra:server-apps>',
@@ -94,7 +96,8 @@ const TS_BLOCKS = {
 	serverRouter: {
 		file: 'source/modules/server/index.ts',
 		anchor: "\t\tthis.app.use('/mcp', this.umbreld.mcp.router)",
-		block: '\t\t// <umbra:server-router>\n\t\tthis.app.use(\'/umbra\', this.umbreld.umbra.router)\n\t\t// </umbra:server-router>',
+		block:
+			"\t\t// <umbra:server-router>\n\t\tthis.app.use('/umbra', this.umbreld.umbra.router)\n\t\t// </umbra:server-router>",
 	},
 	serverUpgrade: {
 		file: 'source/modules/server/index.ts',
@@ -119,13 +122,15 @@ const TS_BLOCKS = {
 			'\t// </umbra:mcp-tools>',
 			'\treturn server',
 		].join('\n'),
-		block: '\t// <umbra:mcp-tools>\n\tawait umbreld.umbra.registerMcpTools(server, context, permissions).catch((error) => {\n\t\tumbreld.mcp.logger.error(\'Failed to register Umbra MCP tools\', error)\n\t})\n\t// </umbra:mcp-tools>',
+		block:
+			"\t// <umbra:mcp-tools>\n\tawait umbreld.umbra.registerMcpTools(server, context, permissions).catch((error) => {\n\t\tumbreld.mcp.logger.error('Failed to register Umbra MCP tools', error)\n\t})\n\t// </umbra:mcp-tools>",
 		position: 'before',
 	},
 	mcpObserve: {
 		file: 'source/modules/mcp/server.ts',
 		anchor: '\t\t\tumbreld.mcp.recordRequest(tokenId, body)',
-		block: '\t\t\t// <umbra:mcp-observe>\n\t\t\tvoid umbreld.umbra.observeMcpRequest(tokenId, body, (request as {umbra?: {realIp?: string}}).umbra?.realIp)\n\t\t\t// </umbra:mcp-observe>',
+		block:
+			'\t\t\t// <umbra:mcp-observe>\n\t\t\tvoid umbreld.umbra.observeMcpRequest(tokenId, body, (request as {umbra?: {realIp?: string}}).umbra?.realIp)\n\t\t\t// </umbra:mcp-observe>',
 	},
 	preUpdate: {
 		file: 'source/modules/system/update.ts',
@@ -139,7 +144,9 @@ const TS_BLOCKS = {
 		position: 'before',
 	},
 	appScript: {
-		file: 'source/modules/apps/legacy-compat/app-script',		anchor: '  if [[ -f "${user_settings_compose_file}" ]]; then\n    compose_files+=( "--file" "${user_settings_compose_file}" )\n  fi',
+		file: 'source/modules/apps/legacy-compat/app-script',
+		anchor:
+			'  if [[ -f "${user_settings_compose_file}" ]]; then\n    compose_files+=( "--file" "${user_settings_compose_file}" )\n  fi',
 		replacement: [
 			'  if [[ -f "${user_settings_compose_file}" ]]; then',
 			'    compose_files+=( "--file" "${user_settings_compose_file}" )',
@@ -157,7 +164,8 @@ const TS_BLOCKS = {
 			'  fi',
 			'  # </umbra:app-script>',
 		].join('\n'),
-		block: '  # <umbra:app-script>\n  # Persistent user overrides live outside the app directory so updates cannot erase them.\n  local -r umbra_quota_override="${UMBREL_ROOT}/umbra/app-overrides/${app}/docker-compose.override.yml"\n  local -r umbra_custom_override="${UMBREL_ROOT}/umbra/app-overrides/${app}/docker-compose.umbra-custom.yml"\n  if [[ -f "${umbra_quota_override}" ]]; then\n    compose_files+=( "--file" "${umbra_quota_override}" )\n  fi\n  if [[ -f "${umbra_custom_override}" ]]; then\n    compose_files+=( "--file" "${umbra_custom_override}" )\n  fi\n  # </umbra:app-script>',
+		block:
+			'  # <umbra:app-script>\n  # Persistent user overrides live outside the app directory so updates cannot erase them.\n  local -r umbra_quota_override="${UMBREL_ROOT}/umbra/app-overrides/${app}/docker-compose.override.yml"\n  local -r umbra_custom_override="${UMBREL_ROOT}/umbra/app-overrides/${app}/docker-compose.umbra-custom.yml"\n  if [[ -f "${umbra_quota_override}" ]]; then\n    compose_files+=( "--file" "${umbra_quota_override}" )\n  fi\n  if [[ -f "${umbra_custom_override}" ]]; then\n    compose_files+=( "--file" "${umbra_custom_override}" )\n  fi\n  # </umbra:app-script>',
 	},
 }
 
@@ -206,7 +214,10 @@ async function applyPatch(patch, {check}) {
 	const before = contents.slice(0, anchorEnd)
 	const after = contents.slice(anchorEnd)
 	const block = patch.position === 'before' ? `${patch.block}\n${patch.anchor}` : `${patch.anchor}\n${patch.block}`
-	contents = patch.position === 'before' ? before.slice(0, anchorIndex) + `${patch.block}\n` + patch.anchor + after : before + `\n${patch.block}` + after
+	contents =
+		patch.position === 'before'
+			? before.slice(0, anchorIndex) + `${patch.block}\n` + patch.anchor + after
+			: before + `\n${patch.block}` + after
 	if (patch.file.endsWith('.ts')) {
 		// No reformat: the blocks already carry the repository's tab indentation.
 	}

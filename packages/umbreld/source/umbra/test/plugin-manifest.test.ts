@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict'
 import {describe, it} from 'node:test'
 
-import {scaffoldPlugin, validateManifest, validatePluginFiles, validateSettings, type PluginManifest} from '../plugin-manifest.js'
+import {
+	scaffoldPlugin,
+	validateManifest,
+	validatePluginFiles,
+	validateSettings,
+	type PluginManifest,
+} from '../plugin-manifest.js'
 
 const base: PluginManifest = {
 	schemaVersion: 1,
@@ -18,7 +24,15 @@ const base: PluginManifest = {
 	ui: {widgets: [{id: 'now', title: 'Weather now', size: 'small'}]},
 	settings: [
 		{key: 'city', label: 'City', type: 'string', default: 'Oslo'},
-		{key: 'units', label: 'Units', type: 'select', options: [{label: 'Metric', value: 'c'}, {label: 'Imperial', value: 'f'}]},
+		{
+			key: 'units',
+			label: 'Units',
+			type: 'select',
+			options: [
+				{label: 'Metric', value: 'c'},
+				{label: 'Imperial', value: 'f'},
+			],
+		},
 	],
 }
 
@@ -54,7 +68,9 @@ describe('plugin manifest', () => {
 	it('validates file lists against the manifest', () => {
 		assert.deepEqual(validatePluginFiles([{path: 'backend/index.js', content: 'export {}'}], base), [])
 		assert.ok(validatePluginFiles([{path: '../escape.js', content: 'x'}], base).length > 0)
-		assert.ok(validatePluginFiles([{path: 'other.js', content: 'x'}], base).some((error) => error.includes('Entry file')))
+		assert.ok(
+			validatePluginFiles([{path: 'other.js', content: 'x'}], base).some((error) => error.includes('Entry file')),
+		)
 	})
 
 	it('applies setting defaults and enforces option values', () => {

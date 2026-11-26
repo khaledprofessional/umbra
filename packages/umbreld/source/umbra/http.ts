@@ -87,16 +87,15 @@ function assertMethod(request: HttpRequest, method: string) {
 }
 
 function csrfFor(umbra: Umbra, principal: Principal): string {
-	return createHmac('sha256', umbra.secrets.key).update(`csrf:${principal.sessionId}:${principal.accountId}`).digest('hex')
+	return createHmac('sha256', umbra.secrets.key)
+		.update(`csrf:${principal.sessionId}:${principal.accountId}`)
+		.digest('hex')
 }
 
 function assertCsrf(ctx: Ctx) {
 	const expected = csrfFor(ctx.umbra, ctx.principal)
 	const provided = header(ctx.request, 'x-umbra-csrf') ?? ''
-	if (
-		provided.length !== expected.length ||
-		!timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
-	) {
+	if (provided.length !== expected.length || !timingSafeEqual(Buffer.from(provided), Buffer.from(expected))) {
 		throw new HttpError(403, 'Invalid CSRF token', 'csrf')
 	}
 	// Defence in depth: a browser cross-site POST would also carry a foreign
@@ -305,7 +304,11 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 			if (!(await umbra.access.canInstallDirectly(principal.accountId))) {
 				throw new HttpError(403, 'This account cannot install apps directly')
 			}
-			await umbra.access.installForMember(principal.accountId, appId, requireString(body.appName ?? appId, 'appName', 80))
+			await umbra.access.installForMember(
+				principal.accountId,
+				appId,
+				requireString(body.appName ?? appId, 'appName', 80),
+			)
 			sendJson(response, 200, {ok: true})
 			return
 		}
@@ -342,7 +345,11 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 					}
 				}),
 			)
-			sendJson(response, 200, apps.sort((first, second) => first.name.localeCompare(second.name)))
+			sendJson(
+				response,
+				200,
+				apps.sort((first, second) => first.name.localeCompare(second.name)),
+			)
 			return
 		}
 
@@ -441,11 +448,16 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 			const body = await readBody(request)
 			const approved = requireBoolean(body.approved, 'approved')
 			const reason = typeof body.reason === 'string' ? body.reason : undefined
-			const found = umbra.approvals.decide(approvalDecision[1], approved, {
-				id: principal.accountId,
-				name: await accountName(umbra, principal),
-				ip: request.umbra?.realIp,
-			}, reason)
+			const found = umbra.approvals.decide(
+				approvalDecision[1],
+				approved,
+				{
+					id: principal.accountId,
+					name: await accountName(umbra, principal),
+					ip: request.umbra?.realIp,
+				},
+				reason,
+			)
 			if (!found) throw new HttpError(404, 'Approval request is no longer pending')
 			sendJson(response, 200, {ok: true})
 			return
@@ -651,7 +663,10 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 			response.setHeader('Content-Type', file.contentType)
 			response.setHeader('Cache-Control', 'no-store')
 			response.setHeader('X-Content-Type-Options', 'nosniff')
-			response.setHeader('Content-Security-Policy', "default-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; sandbox allow-scripts")
+			response.setHeader(
+				'Content-Security-Policy',
+				"default-src 'self'; style-src 'unsafe-inline'; img-src 'self' data:; sandbox allow-scripts",
+			)
 			response.end(file.contents)
 			return
 		}
@@ -687,11 +702,16 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 			sendJson(
 				response,
 				200,
-				await umbra.access.decide(requestDecision[1], requireBoolean(body.approved, 'approved'), {
-					id: principal.accountId,
-					name: await accountName(umbra, principal),
-					ip: request.umbra?.realIp,
-				}, typeof body.reason === 'string' ? body.reason : undefined),
+				await umbra.access.decide(
+					requestDecision[1],
+					requireBoolean(body.approved, 'approved'),
+					{
+						id: principal.accountId,
+						name: await accountName(umbra, principal),
+						ip: request.umbra?.realIp,
+					},
+					typeof body.reason === 'string' ? body.reason : undefined,
+				),
 			)
 			return
 		}
@@ -746,7 +766,12 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 					200,
 					await umbra.snapshots.create(
 						requireString(body.reason ?? 'manual', 'reason', 60),
-						{type: 'user', id: principal.accountId, name: await accountName(umbra, principal), ip: request.umbra?.realIp},
+						{
+							type: 'user',
+							id: principal.accountId,
+							name: await accountName(umbra, principal),
+							ip: request.umbra?.realIp,
+						},
 						typeof body.passphrase === 'string' ? body.passphrase : undefined,
 					),
 				)
@@ -778,7 +803,8 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 				const updated = await umbra.config.update((draft) => {
 					if (typeof body.enabled === 'boolean') draft.extras.autoUpdate.enabled = body.enabled
 					if (body.apps === 'all' || Array.isArray(body.apps)) {
-						draft.extras.autoUpdate.apps = body.apps === 'all' ? 'all' : body.apps.filter((id: unknown) => typeof id === 'string')
+						draft.extras.autoUpdate.apps =
+							body.apps === 'all' ? 'all' : body.apps.filter((id: unknown) => typeof id === 'string')
 					}
 					if (isRecord(body.window)) {
 						const window = body.window as Record<string, unknown>
@@ -805,7 +831,10 @@ export default function createUmbraRouter(umbreld: UmbrelLike, umbra: Umbra) {
 			if (response.headersSent) return
 			const status = error instanceof HttpError ? error.status : 500
 			if (status >= 500) umbra.logger.error('Umbra API request failed', error)
-			sendJson(response, status, {error: errorMessage(error), ...(error instanceof HttpError ? {code: error.code} : {})})
+			sendJson(response, status, {
+				error: errorMessage(error),
+				...(error instanceof HttpError ? {code: error.code} : {}),
+			})
 		})
 	}
 }

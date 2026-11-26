@@ -79,9 +79,10 @@ function makeContext() {
 				})
 				.join(' ')
 				.slice(0, 4000)
-			callHost('log', {level: ['debug', 'info', 'warn', 'error'].includes(level) ? level : 'info', message: text}).catch(
-				() => {},
-			)
+			callHost('log', {
+				level: ['debug', 'info', 'warn', 'error'].includes(level) ? level : 'info',
+				message: text,
+			}).catch(() => {})
 		},
 		storage,
 		metrics: () => callHost('metrics.read'),

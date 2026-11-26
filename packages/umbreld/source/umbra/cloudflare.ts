@@ -69,13 +69,10 @@ function run(command: string, args: string[], timeoutMs = 20_000): Promise<RunRe
 
 function metricsReady(): Promise<{ready: boolean; error?: string}> {
 	return new Promise((resolve) => {
-		const request = http.get(
-			{host: '127.0.0.1', port: METRICS_PORT, path: '/ready', timeout: 2_000},
-			(response) => {
-				response.resume()
-				resolve({ready: response.statusCode === 200})
-			},
-		)
+		const request = http.get({host: '127.0.0.1', port: METRICS_PORT, path: '/ready', timeout: 2_000}, (response) => {
+			response.resume()
+			resolve({ready: response.statusCode === 200})
+		})
 		request.on('timeout', () => {
 			request.destroy()
 			resolve({ready: false, error: 'Metrics endpoint timed out'})
@@ -148,11 +145,9 @@ export default class CloudflareManager {
 	async stop(): Promise<void> {
 		if (this.#pollTimer) clearInterval(this.#pollTimer)
 		this.#pollTimer = undefined
-		const config = await this.#config.load()
 		// A clean umbreld stop should not tear down a tunnel that Docker will
 		// keep running across an OTA reboot; only the kill switch and explicit
 		// disable stop it.
-		void config
 	}
 
 	#startPolling() {
@@ -215,7 +210,10 @@ export default class CloudflareManager {
 			]
 			for (const [key, min, max] of ranges) {
 				const value = patch.security[key]
-				if (value !== undefined && (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max)) {
+				if (
+					value !== undefined &&
+					(typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max)
+				) {
 					throw new HttpError(400, `${key} must be an integer between ${min} and ${max}`)
 				}
 			}
@@ -544,7 +542,9 @@ export default class CloudflareManager {
 			}
 		}
 		const health =
-			exists && state === 'running' ? await metricsReady() : {ready: false, error: dockerAvailable ? undefined : 'Docker unavailable'}
+			exists && state === 'running'
+				? await metricsReady()
+				: {ready: false, error: dockerAvailable ? undefined : 'Docker unavailable'}
 		const status: TunnelStatus = {
 			configured: Boolean(
 				config.cloudflare.hostname &&
@@ -567,7 +567,11 @@ export default class CloudflareManager {
 	}
 
 	async logs(lines = 100): Promise<string> {
-		const result = await run('docker', ['logs', '--tail', String(Math.min(lines, MAX_LOG_LINES)), CONTAINER_NAME], 10_000)
+		const result = await run(
+			'docker',
+			['logs', '--tail', String(Math.min(lines, MAX_LOG_LINES)), CONTAINER_NAME],
+			10_000,
+		)
 		return `${result.stdout}\n${result.stderr}`.trim()
 	}
 

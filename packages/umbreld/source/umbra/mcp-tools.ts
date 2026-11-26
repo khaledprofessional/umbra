@@ -93,11 +93,11 @@ export default function registerUmbraMcpTools(
 					throw new Error('Avatar was updated less than a minute ago; try again later')
 				}
 				const image = await fetchAndSanitizeAvatar(input.image_url)
-				const avatar = await umbra.agents.setAvatar(
-					context.agent.tokenId,
-					image,
-					{type: 'agent', id: context.agent.tokenId, name: agentName(context.agent)},
-				)
+				const avatar = await umbra.agents.setAvatar(context.agent.tokenId, image, {
+					type: 'agent',
+					id: context.agent.tokenId,
+					name: agentName(context.agent),
+				})
 				return {
 					ok: true,
 					avatarUrl: `/umbra/api/agents/${context.agent.tokenId}/avatar?v=${avatar.sha256.slice(0, 12)}`,
@@ -243,7 +243,8 @@ export default function registerUmbraMcpTools(
 		'query_audit_log',
 		{
 			title: 'Query the AI agent audit log',
-			description: 'Read tamper-evident audit events for MCP connections, tool calls, terminal commands, approvals, and plugin changes.',
+			description:
+				'Read tamper-evident audit events for MCP connections, tool calls, terminal commands, approvals, and plugin changes.',
 			inputSchema: z.object({
 				limit: z.number().int().min(1).max(200).optional(),
 				before: z.number().int().optional(),

@@ -135,13 +135,22 @@ describe('Umbra HTTP API', () => {
 		const {csrfToken} = JSON.parse(sessionRes.body)
 
 		const denied = response()
-		router(postRequest('/api/me/request-app', 'UMBREL_BROWSER_SESSION=member', {appId: 'sonarr', appName: 'Sonarr'}, 'bad'), denied, () => {})
+		router(
+			postRequest('/api/me/request-app', 'UMBREL_BROWSER_SESSION=member', {appId: 'sonarr', appName: 'Sonarr'}, 'bad'),
+			denied,
+			() => {},
+		)
 		await denied.ended
 		assert.equal(denied.statusCode, 403)
 
 		const accepted = response()
 		router(
-			postRequest('/api/me/request-app', 'UMBREL_BROWSER_SESSION=member', {appId: 'sonarr', appName: 'Sonarr'}, csrfToken),
+			postRequest(
+				'/api/me/request-app',
+				'UMBREL_BROWSER_SESSION=member',
+				{appId: 'sonarr', appName: 'Sonarr'},
+				csrfToken,
+			),
 			accepted,
 			() => {},
 		)

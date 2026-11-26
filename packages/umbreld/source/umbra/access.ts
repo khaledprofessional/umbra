@@ -111,7 +111,8 @@ export default class AppAccessManager {
 			const config = await this.#config.load()
 			return (
 				config.access.requests.find(
-					(request) => request.appId === input.appId && request.userId === input.userId && request.status === 'installed',
+					(request) =>
+						request.appId === input.appId && request.userId === input.userId && request.status === 'installed',
 				) ?? {
 					id: randomId(8),
 					appId: input.appId,
@@ -165,12 +166,7 @@ export default class AppAccessManager {
 		return request
 	}
 
-	async decide(
-		requestId: string,
-		approved: boolean,
-		actor: {id: string; name?: string; ip?: string},
-		reason?: string,
-	) {
+	async decide(requestId: string, approved: boolean, actor: {id: string; name?: string; ip?: string}, reason?: string) {
 		const config = await this.#config.load()
 		const request = config.access.requests.find((entry) => entry.id === requestId)
 		if (!request) throw new HttpError(404, 'Request not found')

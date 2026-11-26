@@ -129,12 +129,7 @@ export class ApprovalManager {
 		return promise
 	}
 
-	decide(
-		id: string,
-		approved: boolean,
-		actor: {id: string; name?: string; ip?: string},
-		reason?: string,
-	): boolean {
+	decide(id: string, approved: boolean, actor: {id: string; name?: string; ip?: string}, reason?: string): boolean {
 		const entry = this.#pending.get(id)
 		if (!entry) return false
 		const decision: ApprovalDecision = approved
@@ -269,10 +264,7 @@ export default class TerminalExecutor {
 		if (Buffer.byteLength(command) > MAX_COMMAND_BYTES) throw new HttpError(413, 'Command is too long')
 		if (command.includes('\u0000')) throw new HttpError(400, 'Command contains a null byte')
 
-		const timeoutMs = Math.min(
-			Math.max(input.timeoutMs ?? config.terminal.defaultTimeoutMs, 1_000),
-			10 * 60_000,
-		)
+		const timeoutMs = Math.min(Math.max(input.timeoutMs ?? config.terminal.defaultTimeoutMs, 1_000), 10 * 60_000)
 		const policy = await this.policyFor(actor.tokenId)
 		if (policy.mode === 'deny') {
 			this.#audit.record({
@@ -459,4 +451,3 @@ export default class TerminalExecutor {
 		})
 	}
 }
-

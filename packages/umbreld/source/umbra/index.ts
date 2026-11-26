@@ -7,11 +7,7 @@ import AuditLog from './audit.js'
 import CloudflareManager from './cloudflare.js'
 import ConfigStore from './config.js'
 import EdgeGuard from './edge.js'
-import {
-	AppOverrideManager,
-	AutoUpdateManager,
-	SnapshotManager,
-} from './extras.js'
+import {AppOverrideManager, AutoUpdateManager, SnapshotManager} from './extras.js'
 import {ensureDir} from './fs-util.js'
 import {fetchAndSanitizeAvatar} from './image.js'
 import createUmbraRouter from './http.js'
@@ -311,7 +307,11 @@ export default class Umbra {
 		register(server as never, context as never, permissions as never, this, policy.mode)
 	}
 
-	async setAgentAvatarFromUrl(tokenId: string, url: string, actor: {type: 'agent' | 'user'; id: string; name?: string}) {
+	async setAgentAvatarFromUrl(
+		tokenId: string,
+		url: string,
+		actor: {type: 'agent' | 'user'; id: string; name?: string},
+	) {
 		const image = await fetchAndSanitizeAvatar(url)
 		return this.agents.setAvatar(tokenId, image, actor)
 	}
@@ -339,11 +339,18 @@ export default class Umbra {
 				},
 			},
 			cloudflare,
-			plugins: plugins.map((plugin) => ({id: plugin.id, version: plugin.version, enabled: plugin.enabled, running: plugin.running})),
+			plugins: plugins.map((plugin) => ({
+				id: plugin.id,
+				version: plugin.version,
+				enabled: plugin.enabled,
+				running: plugin.running,
+			})),
 			approvals: this.approvals.list(),
 			agents: this.agents.list().map((agent) => ({
 				...agent,
-				avatarUrl: agent.avatar ? `/umbra/api/agents/${agent.tokenId}/avatar?v=${agent.avatar.sha256.slice(0, 12)}` : null,
+				avatarUrl: agent.avatar
+					? `/umbra/api/agents/${agent.tokenId}/avatar?v=${agent.avatar.sha256.slice(0, 12)}`
+					: null,
 			})),
 			audit: {entries: (await this.audit.query({limit: 1})).events.length},
 			snapshots: (await this.snapshots.list()).slice(0, 5),
@@ -352,7 +359,8 @@ export default class Umbra {
 	}
 
 	requireOwner(principal: {accountId: string} | null | undefined) {
-		if (!principal || principal.accountId !== '0') throw new HttpError(403, 'This action can only be performed by the owner')
+		if (!principal || principal.accountId !== '0')
+			throw new HttpError(403, 'This action can only be performed by the owner')
 	}
 }
 

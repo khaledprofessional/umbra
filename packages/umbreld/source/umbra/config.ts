@@ -365,12 +365,7 @@ export function normalizeConfig(input: unknown): UmbraConfig {
 			allowedRoots: stringArray(terminal.allowedRoots, defaults.terminal.allowedRoots),
 			defaultTimeoutMs: numberInRange(terminal.defaultTimeoutMs, defaults.terminal.defaultTimeoutMs, 1_000, 600_000),
 			maxOutputBytes: numberInRange(terminal.maxOutputBytes, defaults.terminal.maxOutputBytes, 4_096, 1_000_000),
-			approvalTimeoutMs: numberInRange(
-				terminal.approvalTimeoutMs,
-				defaults.terminal.approvalTimeoutMs,
-				5_000,
-				600_000,
-			),
+			approvalTimeoutMs: numberInRange(terminal.approvalTimeoutMs, defaults.terminal.approvalTimeoutMs, 5_000, 600_000),
 		},
 		cloudflare: {
 			enabled: asBoolean(cloudflare.enabled, false),
@@ -386,7 +381,9 @@ export function normalizeConfig(input: unknown): UmbraConfig {
 			credentialsSet: asBoolean(cloudflare.credentialsSet, false),
 			access: {
 				enabled: asBoolean(access.enabled, false),
-				teamDomain: asString(access.teamDomain, '').replace(/^https?:\/\//, '').replace(/\/$/, ''),
+				teamDomain: asString(access.teamDomain, '')
+					.replace(/^https?:\/\//, '')
+					.replace(/\/$/, ''),
 				audience: asString(access.audience, ''),
 				allowedEmails: stringArray(access.allowedEmails, []).map((email) => email.toLowerCase()),
 				allowedGroups: stringArray(access.allowedGroups, []),
@@ -423,9 +420,7 @@ export function normalizeConfig(input: unknown): UmbraConfig {
 			lastError: typeof cloudflare.lastError === 'string' ? cloudflare.lastError : undefined,
 		},
 		access: {
-			defaultPolicy: (['none', 'request', 'manage'] as const).includes(
-				accessConfig.defaultPolicy as AppAccessPolicy,
-			)
+			defaultPolicy: (['none', 'request', 'manage'] as const).includes(accessConfig.defaultPolicy as AppAccessPolicy)
 				? (accessConfig.defaultPolicy as AppAccessPolicy)
 				: 'request',
 			members,
@@ -442,7 +437,9 @@ export function normalizeConfig(input: unknown): UmbraConfig {
 				apps: autoUpdate.apps === 'all' ? 'all' : stringArray(autoUpdate.apps, []),
 				window: {
 					days: Array.isArray(window.days)
-						? [...new Set(window.days.filter((day): day is number => Number.isInteger(day) && day >= 0 && day <= 6))].sort()
+						? [
+								...new Set(window.days.filter((day): day is number => Number.isInteger(day) && day >= 0 && day <= 6)),
+							].sort()
 						: defaults.extras.autoUpdate.window.days,
 					start: TIME_PATTERN.test(asString(window.start)) ? asString(window.start) : '03:00',
 					end: TIME_PATTERN.test(asString(window.end)) ? asString(window.end) : '05:00',
@@ -505,4 +502,3 @@ export default class ConfigStore {
 		return next
 	}
 }
-

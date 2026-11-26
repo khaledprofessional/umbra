@@ -324,8 +324,14 @@ export class SnapshotManager {
 		const overrideDirectory = path.join(root, 'umbra', 'app-overrides')
 		for (const appId of await readdir(overrideDirectory).catch(() => [])) {
 			if (!/^[a-zA-Z0-9-_]{1,80}$/.test(appId)) continue
-			await add(`umbra/app-overrides/${appId}/docker-compose.override.yml`, path.join(overrideDirectory, appId, 'docker-compose.override.yml'))
-			await add(`umbra/app-overrides/${appId}/docker-compose.umbra-custom.yml`, path.join(overrideDirectory, appId, 'docker-compose.umbra-custom.yml'))
+			await add(
+				`umbra/app-overrides/${appId}/docker-compose.override.yml`,
+				path.join(overrideDirectory, appId, 'docker-compose.override.yml'),
+			)
+			await add(
+				`umbra/app-overrides/${appId}/docker-compose.umbra-custom.yml`,
+				path.join(overrideDirectory, appId, 'docker-compose.umbra-custom.yml'),
+			)
 		}
 		for (const app of this.#umbreld.apps.instances) {
 			await add(`app-data/${app.id}/settings.yml`, path.join(app.dataDirectory, 'settings.yml'), 256_000)
@@ -468,7 +474,7 @@ export class SnapshotManager {
 				relative === 'umbra/agents.json' ||
 				relative.startsWith('umbra/app-overrides/') ||
 				relative.startsWith('umbra/plugins/installed/') ||
-				relative.startsWith('app-data/') && relative.endsWith('/settings.yml')
+				(relative.startsWith('app-data/') && relative.endsWith('/settings.yml'))
 			if (!allowed) {
 				skipped.push(relative)
 				continue
@@ -614,4 +620,3 @@ export class AutoUpdateManager {
 		return {updated, skipped: []}
 	}
 }
-

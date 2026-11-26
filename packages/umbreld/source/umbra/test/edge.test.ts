@@ -46,11 +46,12 @@ describe('public edge guard', () => {
 	let directory: string
 	let config: ConfigStore
 	let guard: EdgeGuard
+	let audit: AuditLog
 
 	before(async () => {
 		directory = await makeTempDir()
 		config = new ConfigStore(directory)
-		const audit = new AuditLog(directory)
+		audit = new AuditLog(directory)
 		await audit.start()
 		await config.update((draft) => {
 			draft.cloudflare.hostname = 'umbrel.example.com'
@@ -61,6 +62,7 @@ describe('public edge guard', () => {
 		guard = new EdgeGuard(config, {} as CloudflareManager, audit)
 	})
 	after(async () => {
+		await audit.flush()
 		await cleanup(directory)
 	})
 
@@ -89,7 +91,12 @@ describe('public edge guard', () => {
 	it('blocks cross-origin mutations', async () => {
 		const res = response()
 		await guard.handle(
-			request({method: 'POST', path: '/trpc/apps.install', url: '/trpc/apps.install', headers: {host: 'umbrel.example.com', origin: 'https://evil.example'}}),
+			request({
+				method: 'POST',
+				path: '/trpc/apps.install',
+				url: '/trpc/apps.install',
+				headers: {host: 'umbrel.example.com', origin: 'https://evil.example'},
+			}),
 			res,
 			() => {},
 		)
@@ -100,7 +107,12 @@ describe('public edge guard', () => {
 		let called = false
 		const res = response()
 		await guard.handle(
-			request({method: 'POST', path: '/trpc/apps.install', url: '/trpc/apps.install', headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'}}),
+			request({
+				method: 'POST',
+				path: '/trpc/apps.install',
+				url: '/trpc/apps.install',
+				headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'},
+			}),
 			res,
 			() => {
 				called = true
@@ -112,12 +124,39 @@ describe('public edge guard', () => {
 
 	it('rate-limits repeated login attempts', async () => {
 		const first = response()
-		await guard.handle(request({method: 'POST', path: '/trpc/user.login', url: '/trpc/user.login', headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'}}), first, () => {})
+		await guard.handle(
+			request({
+				method: 'POST',
+				path: '/trpc/user.login',
+				url: '/trpc/user.login',
+				headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'},
+			}),
+			first,
+			() => {},
+		)
 		assert.equal(first.statusCode, 200)
 		const second = response()
-		await guard.handle(request({method: 'POST', path: '/trpc/user.login', url: '/trpc/user.login', headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'}}), second, () => {})
+		await guard.handle(
+			request({
+				method: 'POST',
+				path: '/trpc/user.login',
+				url: '/trpc/user.login',
+				headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'},
+			}),
+			second,
+			() => {},
+		)
 		const third = response()
-		await guard.handle(request({method: 'POST', path: '/trpc/user.login', url: '/trpc/user.login', headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'}}), third, () => {})
+		await guard.handle(
+			request({
+				method: 'POST',
+				path: '/trpc/user.login',
+				url: '/trpc/user.login',
+				headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'},
+			}),
+			third,
+			() => {},
+		)
 		assert.equal(third.statusCode, 429)
 	})
 
@@ -163,5 +202,3 @@ describe('public edge guard', () => {
 		assert.equal(sessionCalled, true)
 	})
 })
-
-

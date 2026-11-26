@@ -58,7 +58,9 @@ describe('single-subdomain app path proxy', () => {
 		upstream = http.createServer((_request, res) => {
 			res.setHeader('content-type', 'text/html; charset=utf-8')
 			res.setHeader('set-cookie', 'app_session=1; Path=/; HttpOnly')
-			res.end('<html><head><title>App</title></head><body><script src="/app.js"></script><a href="/next">Next</a></body></html>')
+			res.end(
+				'<html><head><title>App</title></head><body><script src="/app.js"></script><a href="/next">Next</a></body></html>',
+			)
 		})
 		await new Promise<void>((resolve) => upstream.listen(0, '127.0.0.1', resolve))
 		port = (upstream.address() as {port: number}).port

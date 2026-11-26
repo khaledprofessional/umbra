@@ -56,7 +56,8 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 	return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
 }
 
-const SECRET_KEY_PATTERN = /token|secret|password|passphrase|authorization|credential|private[-_]?key|apikey|api[-_]key/i
+const SECRET_KEY_PATTERN =
+	/token|secret|password|passphrase|authorization|credential|private[-_]?key|apikey|api[-_]key/i
 const BEARER_PATTERN = /\b(Bearer|umbrelmcp_|umbreltoken_)[A-Za-z0-9._~+/=-]{8,}/gi
 
 /**

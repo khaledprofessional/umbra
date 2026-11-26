@@ -97,7 +97,14 @@ function sanitizePng(input: Buffer): SanitizedImage {
 
 	if (!sawIhdr || !sawIdat || !sawIend) throw new HttpError(400, 'Incomplete PNG image')
 	validateDimensions(width, height)
-	return {data: Buffer.concat([PNG_SIGNATURE, ...chunks]), mime: 'image/png', extension: 'png', width, height, sha256: ''}
+	return {
+		data: Buffer.concat([PNG_SIGNATURE, ...chunks]),
+		mime: 'image/png',
+		extension: 'png',
+		width,
+		height,
+		sha256: '',
+	}
 }
 
 function sanitizeJpeg(input: Buffer): SanitizedImage {
@@ -431,7 +438,10 @@ export async function fetchAndSanitizeAvatar(rawUrl: string): Promise<SanitizedI
 	}
 	const response = await validateAndFetch(url, MAX_REDIRECTS)
 	if (!response.body.length) throw new HttpError(400, 'Avatar image is empty')
-	const contentType = String(response.headers['content-type'] ?? '').split(';')[0].trim().toLowerCase()
+	const contentType = String(response.headers['content-type'] ?? '')
+		.split(';')[0]
+		.trim()
+		.toLowerCase()
 	if (
 		contentType &&
 		!['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'application/octet-stream'].includes(contentType)

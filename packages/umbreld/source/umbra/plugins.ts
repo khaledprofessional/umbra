@@ -7,14 +7,7 @@ import {fileURLToPath} from 'node:url'
 import type AuditLog from './audit.js'
 import type ConfigStore from './config.js'
 import type {PluginRecord} from './config.js'
-import {
-	ensureDir,
-	readJsonOrNull,
-	removeIfExists,
-	resolveInside,
-	writeFileAtomic,
-	writeJsonAtomic,
-} from './fs-util.js'
+import {ensureDir, readJsonOrNull, removeIfExists, resolveInside, writeFileAtomic, writeJsonAtomic} from './fs-util.js'
 import {
 	MAX_PLUGIN_BYTES,
 	scaffoldPlugin,
@@ -32,7 +25,8 @@ const RUNTIME_PATH = fileURLToPath(new URL('./plugin-runtime.mjs', import.meta.u
 // On Linux, a fresh network namespace is the only reliable way to stop a
 // plugin from opening sockets (Node's permission model does not cover network
 // I/O). IPC over the inherited fd still works through unshare.
-const UNSHARE_PATH = process.platform === 'linux' ? ['/usr/bin/unshare', '/bin/unshare'].find((path) => existsSync(path)) : undefined
+const UNSHARE_PATH =
+	process.platform === 'linux' ? ['/usr/bin/unshare', '/bin/unshare'].find((path) => existsSync(path)) : undefined
 const PLUGIN_ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?)+$/
 const STORAGE_LIMIT_BYTES = 256 * 1024
 const MAX_RESTARTS = 3
@@ -77,7 +71,11 @@ class PluginSandbox {
 	#logger: {log: (...args: unknown[]) => void; error: (...args: unknown[]) => void}
 	#running?: RunningPlugin
 
-	constructor(context: PluginContext, host: SandboxHost, logger: {log: (...args: unknown[]) => void; error: (...args: unknown[]) => void}) {
+	constructor(
+		context: PluginContext,
+		host: SandboxHost,
+		logger: {log: (...args: unknown[]) => void; error: (...args: unknown[]) => void},
+	) {
 		this.#context = context
 		this.#host = host
 		this.#logger = logger
@@ -147,10 +145,7 @@ class PluginSandbox {
 				this.#logger.error(`Plugin ${this.#context.id} message failed`, error),
 			)
 		})
-		const readyTimer = setTimeout(
-			() => rejectReady(new Error('Plugin did not start within 10 seconds')),
-			10_000,
-		)
+		const readyTimer = setTimeout(() => rejectReady(new Error('Plugin did not start within 10 seconds')), 10_000)
 		child.once('message', (message: unknown) => {
 			if (isRecord(message) && message.type === 'ready') {
 				clearTimeout(readyTimer)
@@ -561,7 +556,10 @@ export default class PluginManager {
 			await writeJsonAtomic(this.#storagePath(id), all, 0o600)
 		}
 		const next = (this.#storageQueues.get(id) ?? Promise.resolve()).then(run, run)
-		this.#storageQueues.set(id, next.catch(() => {}))
+		this.#storageQueues.set(
+			id,
+			next.catch(() => {}),
+		)
 		await next
 	}
 
@@ -604,7 +602,8 @@ export default class PluginManager {
 		const fileErrors = validatePluginFiles(files, manifest)
 		if (fileErrors.length) throw new HttpError(400, `Invalid plugin files: ${fileErrors.join('; ')}`)
 		const total = files.reduce(
-			(sum, file) => sum + (file.encoding === 'base64' ? Math.ceil((file.content.length * 3) / 4) : Buffer.byteLength(file.content)),
+			(sum, file) =>
+				sum + (file.encoding === 'base64' ? Math.ceil((file.content.length * 3) / 4) : Buffer.byteLength(file.content)),
 			0,
 		)
 		if (total > MAX_PLUGIN_BYTES) throw new HttpError(413, 'Plugin is too large')
@@ -655,11 +654,7 @@ export default class PluginManager {
 		return this.get(manifest.id)
 	}
 
-	async installFromPath(
-		sourcePath: string,
-		actor: {id: string; name?: string; ip?: string},
-		enable = false,
-	) {
+	async installFromPath(sourcePath: string, actor: {id: string; name?: string; ip?: string}, enable = false) {
 		const fs = await import('node:fs/promises')
 		const root = path.resolve(sourcePath)
 		const stats = await fs.stat(root).catch(() => null)
@@ -723,11 +718,7 @@ export default class PluginManager {
 		return this.get(id)
 	}
 
-	async disable(
-		id: string,
-		actor: {id: string; name?: string; ip?: string; reason?: string},
-		silent = false,
-	) {
+	async disable(id: string, actor: {id: string; name?: string; ip?: string; reason?: string}, silent = false) {
 		const config = await this.#config.load()
 		const record = config.plugins.records[id]
 		if (!record) throw new HttpError(404, 'Plugin not found')
@@ -772,11 +763,7 @@ export default class PluginManager {
 		return {ok: true}
 	}
 
-	async setSettings(
-		id: string,
-		values: Record<string, unknown>,
-		actor: {id: string; name?: string; ip?: string},
-	) {
+	async setSettings(id: string, values: Record<string, unknown>, actor: {id: string; name?: string; ip?: string}) {
 		const config = await this.#config.load()
 		const record = config.plugins.records[id]
 		if (!record) throw new HttpError(404, 'Plugin not found')

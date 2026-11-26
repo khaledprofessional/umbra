@@ -77,10 +77,7 @@ describe('terminal approvals and policy', () => {
 	it('denies execution when the agent policy is deny', async () => {
 		await agents.setTerminalPolicy(TOKEN, {mode: 'deny'}, {id: '0', name: 'Owner'})
 		assert.equal((await terminal.policyFor(TOKEN)).mode, 'deny')
-		await assert.rejects(
-			() => terminal.execute({tokenId: TOKEN, name: 'Claude Code'}, {command: 'id'}),
-			/not granted/,
-		)
+		await assert.rejects(() => terminal.execute({tokenId: TOKEN, name: 'Claude Code'}, {command: 'id'}), /not granted/)
 	})
 
 	it('runs a pre-approved command when bash is available', async (context) => {

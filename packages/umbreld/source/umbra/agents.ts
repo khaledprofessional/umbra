@@ -119,7 +119,7 @@ export default class AgentRegistry {
 			height: typeof avatar.height === 'number' ? avatar.height : 0,
 			sha256: avatar.sha256,
 			updatedAt: typeof avatar.updatedAt === 'number' ? avatar.updatedAt : Date.now(),
-			}
+		}
 	}
 
 	async #persist(draft: AgentFile): Promise<void> {
@@ -189,11 +189,7 @@ export default class AgentRegistry {
 		})
 	}
 
-	async ensureProfile(
-		tokenId: string,
-		label: string,
-		agentType?: string,
-	): Promise<AgentProfile> {
+	async ensureProfile(tokenId: string, label: string, agentType?: string): Promise<AgentProfile> {
 		if (!TOKEN_ID.test(tokenId)) throw new Error('Invalid agent token id')
 		await this.#ensureLoaded()
 		if (this.#data.agents[tokenId]) return structuredClone(this.#data.agents[tokenId])
@@ -297,7 +293,9 @@ export default class AgentRegistry {
 	/** Remove avatar files that no profile references (e.g. from a failed write). */
 	async pruneOrphanAvatars(): Promise<void> {
 		const fs = await import('node:fs/promises')
-		const known = new Set(Object.values(this.#data.agents).flatMap((profile) => (profile.avatar ? [profile.avatar.file] : [])))
+		const known = new Set(
+			Object.values(this.#data.agents).flatMap((profile) => (profile.avatar ? [profile.avatar.file] : [])),
+		)
 		for (const name of await fs.readdir(this.avatarsDirectory).catch(() => [])) {
 			if (!known.has(name)) await removeIfExists(path.join(this.avatarsDirectory, name))
 		}

@@ -108,7 +108,9 @@ export default class EdgeGuard {
 	async handle(request: HttpRequest, response: HttpResponse, next: NextFunction): Promise<void> {
 		const config = await this.#config.load()
 		const cloudflare = config.cloudflare
-		const originalHost = (header(request, 'x-forwarded-host') ?? header(request, 'host') ?? '').split(':')[0].toLowerCase()
+		const originalHost = (header(request, 'x-forwarded-host') ?? header(request, 'host') ?? '')
+			.split(':')[0]
+			.toLowerCase()
 		const publicRequest = Boolean(cloudflare.hostname) && originalHost === cloudflare.hostname
 		const realIp = this.#realIp(request, publicRequest && cloudflare.enabled)
 
@@ -184,7 +186,11 @@ export default class EdgeGuard {
 			}
 		}
 
-		if (publicRequest && cloudflare.access.enabled && this.#isProtected(path, config.cloudflare.access.publicProcedures)) {
+		if (
+			publicRequest &&
+			cloudflare.access.enabled &&
+			this.#isProtected(path, config.cloudflare.access.publicProcedures)
+		) {
 			const token =
 				header(request, 'cf-access-jwt-assertion') ??
 				cookie(request, 'CF_Authorization') ??
@@ -291,7 +297,10 @@ export default class EdgeGuard {
 			.split(',')
 			.map((procedure) => procedure.split('/')[0])
 		return (
-			procedures.some((procedure) => procedure === 'user.login' || procedure === 'user.loginNative' || procedure === 'user.refreshNativeAccess') ||
+			procedures.some(
+				(procedure) =>
+					procedure === 'user.login' || procedure === 'user.loginNative' || procedure === 'user.refreshNativeAccess',
+			) ||
 			clean === '/login' ||
 			clean.startsWith('/app-auth/')
 		)
@@ -310,12 +319,7 @@ export default class EdgeGuard {
 		// token handshake.
 		if (path === '/umbra/api/session') return false
 		if (path.startsWith('/trpc/')) {
-			const procedures = path
-				.slice('/trpc/'.length)
-				.split('/')[0]
-				.split('?')[0]
-				.split(',')
-				.filter(Boolean)
+			const procedures = path.slice('/trpc/'.length).split('/')[0].split('?')[0].split(',').filter(Boolean)
 			return procedures.some(
 				(procedure) =>
 					!publicProcedures.includes(procedure) &&
@@ -391,10 +395,7 @@ export default class EdgeGuard {
 		return created
 	}
 
-	#recordFailure(
-		ip: string,
-		security: {loginLockoutThreshold: number; loginLockoutMinutes: number},
-	) {
+	#recordFailure(ip: string, security: {loginLockoutThreshold: number; loginLockoutMinutes: number}) {
 		const bucket = this.#failureBucket(ip)
 		if (Date.now() - bucket.firstFailureAt > security.loginLockoutMinutes * 60_000) {
 			bucket.failures = 0

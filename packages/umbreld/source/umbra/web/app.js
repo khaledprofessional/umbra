@@ -83,7 +83,10 @@ function bytes(value) {
 }
 
 function initial(value) {
-	return String(value || '?').trim().slice(0, 1).toUpperCase()
+	return String(value || '?')
+		.trim()
+		.slice(0, 1)
+		.toUpperCase()
 }
 
 function toast(message, kind = '') {
@@ -113,7 +116,12 @@ function card(title, subtitle, ...children) {
 			h(
 				'div',
 				{class: 'card-head'},
-				h('div', {}, h('div', {class: 'card-title', text: title}), subtitle && h('div', {class: 'card-sub', text: subtitle})),
+				h(
+					'div',
+					{},
+					h('div', {class: 'card-title', text: title}),
+					subtitle && h('div', {class: 'card-sub', text: subtitle}),
+				),
 			),
 		...children,
 	)
@@ -137,13 +145,7 @@ function avatar(agent, size = '') {
 
 function openModal(title, body, actions) {
 	const backdrop = h('div', {class: 'modal-backdrop'})
-	const modal = h(
-		'div',
-		{class: 'modal'},
-		h('h3', {text: title}),
-		body,
-		h('div', {class: 'modal-actions'}, ...actions),
-	)
+	const modal = h('div', {class: 'modal'}, h('h3', {text: title}), body, h('div', {class: 'modal-actions'}, ...actions))
 	backdrop.append(modal)
 	backdrop.addEventListener('click', (event) => {
 		if (event.target === backdrop) backdrop.remove()
@@ -153,25 +155,25 @@ function openModal(title, body, actions) {
 }
 
 function confirmAction(title, message, label, action, danger = false) {
-	openModal(
-		title,
-		h('p', {class: 'muted', text: message}),
-		[
-			h('button', {class: 'btn ghost', text: 'Cancel', onclick: () => document.querySelector('.modal-backdrop')?.remove()}),
-			h('button', {
-				class: `btn ${danger ? 'danger' : 'primary'}`,
-				text: label,
-				onclick: async () => {
-					try {
-						await action()
-						document.querySelector('.modal-backdrop')?.remove()
-					} catch (error) {
-						toast(error.message, 'bad')
-					}
-				},
-			}),
-		],
-	)
+	openModal(title, h('p', {class: 'muted', text: message}), [
+		h('button', {
+			class: 'btn ghost',
+			text: 'Cancel',
+			onclick: () => document.querySelector('.modal-backdrop')?.remove(),
+		}),
+		h('button', {
+			class: `btn ${danger ? 'danger' : 'primary'}`,
+			text: label,
+			onclick: async () => {
+				try {
+					await action()
+					document.querySelector('.modal-backdrop')?.remove()
+				} catch (error) {
+					toast(error.message, 'bad')
+				}
+			},
+		}),
+	])
 }
 
 /* -------------------------------------------------------------------------- */
@@ -224,7 +226,10 @@ function renderSignedOut(message) {
 function navItems() {
 	const isOwner = state.session?.principal?.role === 'owner'
 	if (!isOwner) {
-		return [{id: 'overview', label: 'Overview', icon: '◈'}, {id: 'users', label: 'App requests', icon: '◉'}]
+		return [
+			{id: 'overview', label: 'Overview', icon: '◈'},
+			{id: 'users', label: 'App requests', icon: '◉'},
+		]
 	}
 	return PAGES
 }
@@ -240,9 +245,14 @@ function renderShell() {
 			'div',
 			{class: 'brand'},
 			h('div', {class: 'brand-mark', text: 'U'}),
-			h('div', {}, h('div', {class: 'brand-name', text: 'Umbra'}), h('div', {class: 'brand-sub', text: 'umbrelOS custom layer'})),
+			h(
+				'div',
+				{},
+				h('div', {class: 'brand-name', text: 'Umbra'}),
+				h('div', {class: 'brand-sub', text: 'umbrelOS custom layer'}),
+			),
 		),
-		h('div', {class: 'nav-label', text: 'Control' }),
+		h('div', {class: 'nav-label', text: 'Control'}),
 		...navItems().map((page) => {
 			const badgeCount = page.badge?.() ?? 0
 			return h(
@@ -253,7 +263,12 @@ function renderShell() {
 				badgeCount ? h('span', {class: 'nav-badge', text: String(badgeCount)}) : null,
 			)
 		}),
-		h('div', {class: 'sidebar-foot'}, h('div', {text: `v${state.session?.version ?? ''}` }), h('div', {text: isOwner ? 'owner session' : 'member session'})),
+		h(
+			'div',
+			{class: 'sidebar-foot'},
+			h('div', {text: `v${state.session?.version ?? ''}`}),
+			h('div', {text: isOwner ? 'owner session' : 'member session'}),
+		),
 	)
 	const main = h('main', {class: 'main'})
 	app.append(h('div', {class: 'shell'}, sidebar, main))
@@ -271,7 +286,11 @@ async function render() {
 	const main = renderShell()
 	const pending = state.approvals[0]
 	if (pending) main.append(renderApprovalBanner(pending))
-	const content = h('div', {}, h('div', {class: 'row'}, h('span', {class: 'spinner'}), h('span', {class: 'muted', text: 'Loading…'})))
+	const content = h(
+		'div',
+		{},
+		h('div', {class: 'row'}, h('span', {class: 'spinner'}), h('span', {class: 'muted', text: 'Loading…'})),
+	)
 	main.append(content)
 	try {
 		const page = await PAGES.find((entry) => entry.id === state.page)?.render?.()
@@ -292,12 +311,11 @@ function renderApprovalBanner(approval) {
 		h(
 			'div',
 			{class: 'grow'},
-			h(
-				'div',
-				{style: 'font-weight:650'},
-				`${approval.agentName} wants to run a command`,
-			),
-			h('div', {class: 'tiny muted', text: `${approval.agentType ? `${approval.agentType} · ` : ''}${approval.cwd} · expires ${fmtDate(approval.expiresAt)}`}),
+			h('div', {style: 'font-weight:650'}, `${approval.agentName} wants to run a command`),
+			h('div', {
+				class: 'tiny muted',
+				text: `${approval.agentType ? `${approval.agentType} · ` : ''}${approval.cwd} · expires ${fmtDate(approval.expiresAt)}`,
+			}),
 			h('div', {class: 'command', text: approval.command}),
 		),
 		h(
@@ -334,7 +352,11 @@ async function renderMemberOverview() {
 		h(
 			'div',
 			{class: 'grid cols-3'},
-			statCard('Install policy', policy.policy === 'manage' ? 'Can install' : policy.policy === 'request' ? 'Request only' : 'No installs', 'Set by the device owner'),
+			statCard(
+				'Install policy',
+				policy.policy === 'manage' ? 'Can install' : policy.policy === 'request' ? 'Request only' : 'No installs',
+				'Set by the device owner',
+			),
 			statCard('Open requests', String(pending), 'Waiting for the owner'),
 			statCard('All requests', String(requests.length), 'Submitted by you'),
 		),
@@ -365,14 +387,27 @@ PAGES[0].render = async () => {
 	return h(
 		'div',
 		{},
-		pageHead('Overview', 'Modding, AI agents, and hardened remote access for this umbrelOS device.', h('button', {class: 'btn', text: 'Refresh', onclick: () => render()})),
+		pageHead(
+			'Overview',
+			'Modding, AI agents, and hardened remote access for this umbrelOS device.',
+			h('button', {class: 'btn', text: 'Refresh', onclick: () => render()}),
+		),
 		h(
 			'div',
 			{class: 'grid cols-4'},
-			statCard('Pending approvals', String(summary.approvals.length), summary.approvals.length ? 'Agent command waiting' : 'Nothing waiting'),
+			statCard(
+				'Pending approvals',
+				String(summary.approvals.length),
+				summary.approvals.length ? 'Agent command waiting' : 'Nothing waiting',
+			),
 			statCard('Connected agents', String(connected), `${summary.agents.length} known credentials`),
 			statCard('Plugins enabled', String(enabledPlugins), `${summary.plugins.length} installed`),
-			statCard('Public exposure', cloudflare.hostname || 'Not configured', cloudflare.publicUrl || 'Cloudflare Tunnel', tunnelPill),
+			statCard(
+				'Public exposure',
+				cloudflare.hostname || 'Not configured',
+				cloudflare.publicUrl || 'Cloudflare Tunnel',
+				tunnelPill,
+			),
 		),
 		h('div', {class: 'section-label', text: 'Quick actions'}),
 		h(
@@ -380,7 +415,9 @@ PAGES[0].render = async () => {
 			{class: 'grid cols-3'},
 			actionCard('Review approvals', 'Approve or deny queued terminal commands.', 'Open', () => navigate('approvals')),
 			actionCard('AI Agent logs', 'Every connection, tool call, and command.', 'View logs', () => navigate('audit')),
-			actionCard('Cloudflare exposure', 'Tunnel health, Access policy, kill switch.', 'Configure', () => navigate('cloudflare')),
+			actionCard('Cloudflare exposure', 'Tunnel health, Access policy, kill switch.', 'Configure', () =>
+				navigate('cloudflare'),
+			),
 		),
 		h('div', {class: 'section-label', text: 'Recent activity'}),
 		card(
@@ -394,7 +431,15 @@ PAGES[0].render = async () => {
 							h(
 								'div',
 								{class: 'list-row'},
-								h('div', {class: 'grow'}, h('div', {class: 'truncate', text: event.action}), h('div', {class: 'tiny faint', text: `${event.actor.name || event.actor.id} · ${fmtDate(event.ts)}`})),
+								h(
+									'div',
+									{class: 'grow'},
+									h('div', {class: 'truncate', text: event.action}),
+									h('div', {
+										class: 'tiny faint',
+										text: `${event.actor.name || event.actor.id} · ${fmtDate(event.ts)}`,
+									}),
+								),
 								outcomePill(event.outcome),
 							),
 						),
@@ -426,10 +471,24 @@ PAGES[1].render = async () => {
 									'div',
 									{class: 'grow', style: 'flex:1 1 260px'},
 									h('div', {style: 'font-weight:650', text: agent.label}),
-									h('div', {class: 'tiny muted', text: [agent.agentType, agent.clientName, `token ${agent.tokenId.slice(0, 8)}…`].filter(Boolean).join(' · ')}),
-									h('div', {class: 'tiny faint', text: `Last seen ${ago(agent.lastSeenAt)}${agent.lastIp ? ` from ${agent.lastIp}` : ''}`}),
+									h('div', {
+										class: 'tiny muted',
+										text: [agent.agentType, agent.clientName, `token ${agent.tokenId.slice(0, 8)}…`]
+											.filter(Boolean)
+											.join(' · '),
+									}),
+									h('div', {
+										class: 'tiny faint',
+										text: `Last seen ${ago(agent.lastSeenAt)}${agent.lastIp ? ` from ${agent.lastIp}` : ''}`,
+									}),
 								),
-								agent.avatar ? h('button', {class: 'btn sm ghost', text: 'Remove avatar', onclick: () => removeAvatar(agent.tokenId)}) : null,
+								agent.avatar
+									? h('button', {
+											class: 'btn sm ghost',
+											text: 'Remove avatar',
+											onclick: () => removeAvatar(agent.tokenId),
+										})
+									: null,
 							),
 							h('div', {class: 'section-label', text: 'Terminal policy'}),
 							policyEditor(agent),
@@ -445,16 +504,36 @@ function policyEditor(agent) {
 		'select',
 		{},
 		...['inherit', 'deny', 'ask', 'always'].map((mode) =>
-			h('option', {value: mode, selected: agent.terminal.mode === mode, text: mode === 'inherit' ? 'Follow global (ask)' : mode === 'always' ? 'Always allowed' : mode === 'ask' ? 'Ask every time' : 'Denied'}),
+			h('option', {
+				value: mode,
+				selected: agent.terminal.mode === mode,
+				text:
+					mode === 'inherit'
+						? 'Follow global (ask)'
+						: mode === 'always'
+							? 'Always allowed'
+							: mode === 'ask'
+								? 'Ask every time'
+								: 'Denied',
+			}),
 		),
 	)
-	const allowlist = h('textarea', {placeholder: 'Optional pre-approved commands, one per line. Prefix with * to match a prefix.', style: 'min-height:64px'})
+	const allowlist = h('textarea', {
+		placeholder: 'Optional pre-approved commands, one per line. Prefix with * to match a prefix.',
+		style: 'min-height:64px',
+	})
 	allowlist.value = agent.terminal.allowlist.join('\n')
 	const save = async () => {
 		try {
 			await api(`/agents/${agent.tokenId}/terminal-policy`, {
 				method: 'POST',
-				body: {mode: select.value, allowlist: allowlist.value.split('\n').map((entry) => entry.trim()).filter(Boolean)},
+				body: {
+					mode: select.value,
+					allowlist: allowlist.value
+						.split('\n')
+						.map((entry) => entry.trim())
+						.filter(Boolean),
+				},
 			})
 			toast('Policy saved', 'ok')
 		} catch (error) {
@@ -464,9 +543,17 @@ function policyEditor(agent) {
 	return h(
 		'div',
 		{class: 'form'},
-		h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'Mode'}), select), h('div', {class: 'field'}, h('label', {text: 'Allowlist'}), allowlist)),
+		h(
+			'div',
+			{class: 'row'},
+			h('div', {class: 'field'}, h('label', {text: 'Mode'}), select),
+			h('div', {class: 'field'}, h('label', {text: 'Allowlist'}), allowlist),
+		),
 		h('div', {}, h('button', {class: 'btn primary sm', text: 'Save policy', onclick: save})),
-		h('p', {class: 'hint faint tiny', text: '"Ask every time" blocks the command and pushes the exact command to this console for approval.'}),
+		h('p', {
+			class: 'hint faint tiny',
+			text: '"Ask every time" blocks the command and pushes the exact command to this console for approval.',
+		}),
 	)
 }
 
@@ -504,7 +591,10 @@ function renderApprovalCard(approval) {
 				'div',
 				{class: 'grow', style: 'flex:1 1 280px'},
 				h('div', {style: 'font-weight:650', text: approval.agentName}),
-				h('div', {class: 'tiny muted', text: `${approval.agentType ?? 'MCP agent'}${approval.clientName ? ` · ${approval.clientName}` : ''}`}),
+				h('div', {
+					class: 'tiny muted',
+					text: `${approval.agentType ?? 'MCP agent'}${approval.clientName ? ` · ${approval.clientName}` : ''}`,
+				}),
 				h('div', {class: 'tiny faint', text: `Requested ${ago(approval.createdAt)} · ${approval.cwd}`}),
 			),
 			pill(`expires ${new Date(approval.expiresAt).toLocaleTimeString()}`, 'warn'),
@@ -521,8 +611,40 @@ function renderApprovalCard(approval) {
 }
 
 PAGES[3].render = async () => {
-	const type = h('select', {}, h('option', {value: '', text: 'All event types'}), ...['mcp.connect', 'mcp.tool', 'terminal.request', 'terminal.approved', 'terminal.denied', 'terminal.executed', 'plugin.install', 'plugin.enable', 'plugin.disable', 'plugin.uninstall', 'cloudflare.enable', 'cloudflare.disable', 'cloudflare.lockdown', 'security.block', 'auth.denied', 'access.request', 'access.approve', 'access.deny', 'snapshot.create', 'snapshot.restore', 'override.update'].map((value) => h('option', {value, text: value})))
-	const outcome = h('select', {}, h('option', {value: '', text: 'Any outcome'}), ...['success', 'failure', 'denied', 'pending'].map((value) => h('option', {value, text: value})))
+	const type = h(
+		'select',
+		{},
+		h('option', {value: '', text: 'All event types'}),
+		...[
+			'mcp.connect',
+			'mcp.tool',
+			'terminal.request',
+			'terminal.approved',
+			'terminal.denied',
+			'terminal.executed',
+			'plugin.install',
+			'plugin.enable',
+			'plugin.disable',
+			'plugin.uninstall',
+			'cloudflare.enable',
+			'cloudflare.disable',
+			'cloudflare.lockdown',
+			'security.block',
+			'auth.denied',
+			'access.request',
+			'access.approve',
+			'access.deny',
+			'snapshot.create',
+			'snapshot.restore',
+			'override.update',
+		].map((value) => h('option', {value, text: value})),
+	)
+	const outcome = h(
+		'select',
+		{},
+		h('option', {value: '', text: 'Any outcome'}),
+		...['success', 'failure', 'denied', 'pending'].map((value) => h('option', {value, text: value})),
+	)
 	const search = h('input', {type: 'text', placeholder: 'Search action, target, detail…'})
 	const agentMap = new Map()
 	try {
@@ -547,7 +669,11 @@ PAGES[3].render = async () => {
 			const table = h(
 				'table',
 				{class: 'table'},
-				h('thead', {}, h('tr', {}, ...['Time', 'Type', 'Actor', 'Action', 'Outcome'].map((label) => h('th', {text: label})))),
+				h(
+					'thead',
+					{},
+					h('tr', {}, ...['Time', 'Type', 'Actor', 'Action', 'Outcome'].map((label) => h('th', {text: label}))),
+				),
 				h(
 					'tbody',
 					{},
@@ -577,7 +703,13 @@ PAGES[3].render = async () => {
 								{},
 								h('div', {text: event.action}),
 								event.target && h('div', {class: 'tiny faint break', text: event.target}),
-								event.detail && h('details', {}, h('summary', {class: 'tiny faint', text: 'detail'}), h('pre', {class: 'code', text: JSON.stringify(event.detail, null, 2)})),
+								event.detail &&
+									h(
+										'details',
+										{},
+										h('summary', {class: 'tiny faint', text: 'detail'}),
+										h('pre', {class: 'code', text: JSON.stringify(event.detail, null, 2)}),
+									),
 							),
 							h('td', {}, outcomePill(event.outcome)),
 						),
@@ -587,7 +719,14 @@ PAGES[3].render = async () => {
 			clear(container)
 			container.append(table)
 			if (result.nextCursor) {
-				container.append(h('button', {class: 'btn sm', style: 'margin-top:12px', text: 'Load older', onclick: () => draw(result.nextCursor)}))
+				container.append(
+					h('button', {
+						class: 'btn sm',
+						style: 'margin-top:12px',
+						text: 'Load older',
+						onclick: () => draw(result.nextCursor),
+					}),
+				)
 			}
 		} catch (error) {
 			clear(container).append(empty(error.message))
@@ -606,7 +745,10 @@ PAGES[3].render = async () => {
 				onclick: async () => {
 					try {
 						const result = await api('/audit/verify')
-						toast(result.ok ? `Chain verified (${result.entries} entries)` : `Chain broken: ${result.error}`, result.ok ? 'ok' : 'bad')
+						toast(
+							result.ok ? `Chain verified (${result.entries} entries)` : `Chain broken: ${result.error}`,
+							result.ok ? 'ok' : 'bad',
+						)
 					} catch (error) {
 						toast(error.message, 'bad')
 					}
@@ -614,7 +756,18 @@ PAGES[3].render = async () => {
 			}),
 			h('a', {class: 'btn', href: '/umbra/api/audit/export', text: 'Export JSON'}),
 		),
-		h('div', {class: 'card tight', style: 'margin-bottom:14px'}, h('div', {class: 'row'}, type, outcome, search, h('button', {class: 'btn', text: 'Filter', onclick: () => draw()}))),
+		h(
+			'div',
+			{class: 'card tight', style: 'margin-bottom:14px'},
+			h(
+				'div',
+				{class: 'row'},
+				type,
+				outcome,
+				search,
+				h('button', {class: 'btn', text: 'Filter', onclick: () => draw()}),
+			),
+		),
 		card('Audit events', null, container),
 	)
 }
@@ -635,7 +788,17 @@ PAGES[4].render = async () => {
 			: empty('No plugins installed. Use Scaffold to generate one, or install from a manifest.'),
 		h('div', {class: 'section-label', text: 'Dashboard widgets'}),
 		widgets.length
-			? h('div', {class: 'grid cols-3'}, ...widgets.map((widget) => card(widget.title, `${widget.pluginName} · ${widget.size}`, h('pre', {class: 'code', text: JSON.stringify(widget.data ?? {status: 'no data yet'}, null, 2)}))))
+			? h(
+					'div',
+					{class: 'grid cols-3'},
+					...widgets.map((widget) =>
+						card(
+							widget.title,
+							`${widget.pluginName} · ${widget.size}`,
+							h('pre', {class: 'code', text: JSON.stringify(widget.data ?? {status: 'no data yet'}, null, 2)}),
+						),
+					),
+				)
 			: empty('No plugin widgets enabled.'),
 	)
 }
@@ -648,11 +811,18 @@ function pluginCard(plugin) {
 		h(
 			'div',
 			{class: 'row', style: 'align-items:flex-start'},
-			h('div', {class: 'grow'}, h('div', {style: 'font-weight:650', text: manifest.name || plugin.id}), h('div', {class: 'tiny muted', text: `${plugin.id} · v${plugin.version}`})),
+			h(
+				'div',
+				{class: 'grow'},
+				h('div', {style: 'font-weight:650', text: manifest.name || plugin.id}),
+				h('div', {class: 'tiny muted', text: `${plugin.id} · v${plugin.version}`}),
+			),
 			plugin.enabled ? dotPill(plugin.running ? 'Running' : 'Enabled', 'ok') : pill('Disabled'),
 		),
 		h('p', {class: 'card-sub', text: manifest.description || ''}),
-		(manifest.permissions || []).length ? h('div', {class: 'row', style: 'margin:10px 0'}, ...manifest.permissions.map((permission) => pill(permission))) : null,
+		(manifest.permissions || []).length
+			? h('div', {class: 'row', style: 'margin:10px 0'}, ...manifest.permissions.map((permission) => pill(permission)))
+			: null,
 		(manifest.ui?.routes || []).length
 			? h(
 					'div',
@@ -661,7 +831,8 @@ function pluginCard(plugin) {
 						h('button', {
 							class: 'btn sm',
 							text: `Open ${route.title}`,
-							onclick: () => window.open(`/umbra/api/plugins/${plugin.id}/ui/${route.entry}`, '_blank', 'noopener,noreferrer'),
+							onclick: () =>
+								window.open(`/umbra/api/plugins/${plugin.id}/ui/${route.entry}`, '_blank', 'noopener,noreferrer'),
 						}),
 					),
 				)
@@ -673,7 +844,14 @@ function pluginCard(plugin) {
 			plugin.enabled
 				? h('button', {class: 'btn sm', text: 'Disable', onclick: () => pluginAction(plugin.id, 'disable')})
 				: h('button', {class: 'btn sm primary', text: 'Enable', onclick: () => pluginAction(plugin.id, 'enable')}),
-			h('button', {class: 'btn sm danger', text: 'Uninstall', onclick: () => confirmAction('Uninstall plugin', `Remove ${plugin.id}? Its data is kept.`, 'Uninstall', () => pluginAction(plugin.id, 'uninstall', {removeData: false}))}),
+			h('button', {
+				class: 'btn sm danger',
+				text: 'Uninstall',
+				onclick: () =>
+					confirmAction('Uninstall plugin', `Remove ${plugin.id}? Its data is kept.`, 'Uninstall', () =>
+						pluginAction(plugin.id, 'uninstall', {removeData: false}),
+					),
+			}),
 		),
 	)
 }
@@ -690,7 +868,10 @@ async function pluginAction(id, action, body = {}) {
 
 function installPluginModal() {
 	const manifest = h('textarea', {placeholder: '{\n  "schemaVersion": 1,\n  ...\n}', style: 'min-height:180px'})
-	const files = h('textarea', {placeholder: '[{"path":"ui/index.html","content":"<h1>Hi</h1>"}]', style: 'min-height:140px'})
+	const files = h('textarea', {
+		placeholder: '[{"path":"ui/index.html","content":"<h1>Hi</h1>"}]',
+		style: 'min-height:140px',
+	})
 	const enable = h('input', {type: 'checkbox'})
 	const {close} = openModal(
 		'Install plugin',
@@ -710,7 +891,10 @@ function installPluginModal() {
 					try {
 						const parsedManifest = JSON.parse(manifest.value)
 						const parsedFiles = JSON.parse(files.value || '[]')
-						await api('/plugins/install', {method: 'POST', body: {manifest: parsedManifest, files: parsedFiles, enable: enable.checked}})
+						await api('/plugins/install', {
+							method: 'POST',
+							body: {manifest: parsedManifest, files: parsedFiles, enable: enable.checked},
+						})
 						close()
 						toast('Plugin installed', 'ok')
 						render()
@@ -736,8 +920,19 @@ function scaffoldModal() {
 		h(
 			'div',
 			{class: 'form'},
-			h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'Plugin id'}), id), h('div', {class: 'field'}, h('label', {text: 'Name'}), name)),
-			h('div', {class: 'row'}, h('label', {class: 'check'}, backend, 'Backend'), h('label', {class: 'check'}, widget, 'Widget'), h('label', {class: 'check'}, route, 'Route')),
+			h(
+				'div',
+				{class: 'row'},
+				h('div', {class: 'field'}, h('label', {text: 'Plugin id'}), id),
+				h('div', {class: 'field'}, h('label', {text: 'Name'}), name),
+			),
+			h(
+				'div',
+				{class: 'row'},
+				h('label', {class: 'check'}, backend, 'Backend'),
+				h('label', {class: 'check'}, widget, 'Widget'),
+				h('label', {class: 'check'}, route, 'Route'),
+			),
 			output,
 		),
 		[
@@ -747,7 +942,16 @@ function scaffoldModal() {
 				text: 'Generate',
 				onclick: async () => {
 					try {
-						generated = await api('/plugins/scaffold', {method: 'POST', body: {id: id.value, name: name.value, withBackend: backend.checked, withWidget: widget.checked, withRoute: route.checked}})
+						generated = await api('/plugins/scaffold', {
+							method: 'POST',
+							body: {
+								id: id.value,
+								name: name.value,
+								withBackend: backend.checked,
+								withWidget: widget.checked,
+								withRoute: route.checked,
+							},
+						})
 						output.textContent = JSON.stringify(generated, null, 2)
 					} catch (error) {
 						toast(error.message, 'bad')
@@ -760,7 +964,10 @@ function scaffoldModal() {
 				onclick: async () => {
 					if (!generated) return toast('Generate first', 'bad')
 					try {
-						await api('/plugins/install', {method: 'POST', body: {manifest: generated.manifest, files: generated.files, enable: true}})
+						await api('/plugins/install', {
+							method: 'POST',
+							body: {manifest: generated.manifest, files: generated.files, enable: true},
+						})
 						close()
 						toast('Plugin installed', 'ok')
 						render()
@@ -785,7 +992,11 @@ PAGES[5].render = async () => {
 			pageHead('App requests', `Your install policy: ${policy.policy}.`),
 			card(
 				'Request an app',
-				policy.policy === 'request' ? 'Your request goes to the owner for approval.' : policy.policy === 'manage' ? 'You can install apps directly.' : 'App installation is disabled for your account.',
+				policy.policy === 'request'
+					? 'Your request goes to the owner for approval.'
+					: policy.policy === 'manage'
+						? 'You can install apps directly.'
+						: 'App installation is disabled for your account.',
 				h(
 					'div',
 					{class: 'form'},
@@ -797,7 +1008,10 @@ PAGES[5].render = async () => {
 						disabled: policy.policy !== 'request',
 						onclick: async () => {
 							try {
-								await api('/me/request-app', {method: 'POST', body: {appId: appId.value, appName: appName.value, message: message.value}})
+								await api('/me/request-app', {
+									method: 'POST',
+									body: {appId: appId.value, appName: appName.value, message: message.value},
+								})
 								toast('Request submitted', 'ok')
 								render()
 							} catch (error) {
@@ -839,7 +1053,10 @@ PAGES[5].render = async () => {
 											{
 												onchange: async (event) => {
 													try {
-														await api(`/access/members/${member.userId}/policy`, {method: 'POST', body: {policy: event.target.value}})
+														await api(`/access/members/${member.userId}/policy`, {
+															method: 'POST',
+															body: {policy: event.target.value},
+														})
 														toast('Policy updated', 'ok')
 													} catch (error) {
 														toast(error.message, 'bad')
@@ -847,7 +1064,12 @@ PAGES[5].render = async () => {
 												},
 											},
 											...['none', 'request', 'manage'].map((policy) =>
-												h('option', {value: policy, selected: member.policy === policy, text: policy === 'manage' ? 'Can install' : policy === 'request' ? 'Request only' : 'No installs'}),
+												h('option', {
+													value: policy,
+													selected: member.policy === policy,
+													text:
+														policy === 'manage' ? 'Can install' : policy === 'request' ? 'Request only' : 'No installs',
+												}),
 											),
 										),
 									),
@@ -859,7 +1081,11 @@ PAGES[5].render = async () => {
 				: empty('No member accounts.'),
 		),
 		h('div', {class: 'section-label', text: 'Request queue'}),
-		card('Pending and recent requests', null, requests.length ? requestTable(requests, true) : empty('No app requests.')),
+		card(
+			'Pending and recent requests',
+			null,
+			requests.length ? requestTable(requests, true) : empty('No app requests.'),
+		),
 	)
 }
 
@@ -867,7 +1093,17 @@ function requestTable(requests, canDecide) {
 	return h(
 		'table',
 		{class: 'table'},
-		h('thead', {}, h('tr', {}, ...['App', 'Requested by', 'Status', 'When', canDecide ? 'Action' : ''].map((label, index) => (label || index < 4 ? h('th', {text: label}) : null)))),
+		h(
+			'thead',
+			{},
+			h(
+				'tr',
+				{},
+				...['App', 'Requested by', 'Status', 'When', canDecide ? 'Action' : ''].map((label, index) =>
+					label || index < 4 ? h('th', {text: label}) : null,
+				),
+			),
+		),
 		h(
 			'tbody',
 			{},
@@ -877,13 +1113,20 @@ function requestTable(requests, canDecide) {
 					{},
 					h('td', {}, h('div', {text: request.appName}), h('div', {class: 'tiny faint', text: request.appId})),
 					h('td', {text: request.userName}),
-					h('td', {}, statusPill(request.status), request.error && h('div', {class: 'tiny', style: 'color:var(--red)', text: request.error})),
+					h(
+						'td',
+						{},
+						statusPill(request.status),
+						request.error && h('div', {class: 'tiny', style: 'color:var(--red)', text: request.error}),
+					),
 					h('td', {class: 'tiny muted nowrap', text: ago(request.createdAt)}),
 					canDecide && request.status === 'pending'
 						? h(
 								'td',
 								{},
-								h('div', {class: 'row', style: 'flex-wrap:nowrap'},
+								h(
+									'div',
+									{class: 'row', style: 'flex-wrap:nowrap'},
 									h('button', {
 										class: 'btn sm primary',
 										text: 'Approve',
@@ -924,14 +1167,38 @@ PAGES[6].render = async () => {
 	const settings = data.settings
 	const status = data.status
 	const hostname = h('input', {type: 'text', value: settings.hostname, placeholder: 'umbrel.example.com'})
-	const mode = h('select', {}, ...['token', 'credentials'].map((value) => h('option', {value, selected: settings.mode === value, text: value === 'token' ? 'Tunnel token (dashboard-managed)' : 'Credentials file (local ingress config)'})))
+	const mode = h(
+		'select',
+		{},
+		...['token', 'credentials'].map((value) =>
+			h('option', {
+				value,
+				selected: settings.mode === value,
+				text: value === 'token' ? 'Tunnel token (dashboard-managed)' : 'Credentials file (local ingress config)',
+			}),
+		),
+	)
 	const image = h('input', {type: 'text', value: settings.image})
-	const token = h('input', {type: 'password', placeholder: settings.tokenSet ? 'Token stored — paste to replace' : 'Paste Cloudflare tunnel token'})
-	const credentials = h('textarea', {placeholder: '{"AccountTag":"…","TunnelID":"…","TunnelSecret":"…"}', style: 'min-height:90px'})
+	const token = h('input', {
+		type: 'password',
+		placeholder: settings.tokenSet ? 'Token stored — paste to replace' : 'Paste Cloudflare tunnel token',
+	})
+	const credentials = h('textarea', {
+		placeholder: '{"AccountTag":"…","TunnelID":"…","TunnelSecret":"…"}',
+		style: 'min-height:90px',
+	})
 	const accessEnabled = h('input', {type: 'checkbox', checked: settings.access.enabled})
-	const teamDomain = h('input', {type: 'text', value: settings.access.teamDomain, placeholder: 'team.cloudflareaccess.com'})
+	const teamDomain = h('input', {
+		type: 'text',
+		value: settings.access.teamDomain,
+		placeholder: 'team.cloudflareaccess.com',
+	})
 	const audience = h('input', {type: 'text', value: settings.access.audience})
-	const emails = h('input', {type: 'text', value: settings.access.allowedEmails.join(', '), placeholder: 'owner@example.com, admin@example.com'})
+	const emails = h('input', {
+		type: 'text',
+		value: settings.access.allowedEmails.join(', '),
+		placeholder: 'owner@example.com, admin@example.com',
+	})
 	const protectedPrefixes = h('input', {type: 'text', value: settings.access.protectedPrefixes.join(', ')})
 	const rate = h('input', {type: 'number', value: settings.security.loginRateLimitPerMinute, min: 1, max: 120})
 	const threshold = h('input', {type: 'number', value: settings.security.loginLockoutThreshold, min: 1, max: 100})
@@ -953,8 +1220,14 @@ PAGES[6].render = async () => {
 						enabled: accessEnabled.checked,
 						teamDomain: teamDomain.value,
 						audience: audience.value,
-						allowedEmails: emails.value.split(',').map((email) => email.trim()).filter(Boolean),
-						protectedPrefixes: protectedPrefixes.value.split(',').map((prefix) => prefix.trim()).filter(Boolean),
+						allowedEmails: emails.value
+							.split(',')
+							.map((email) => email.trim())
+							.filter(Boolean),
+						protectedPrefixes: protectedPrefixes.value
+							.split(',')
+							.map((prefix) => prefix.trim())
+							.filter(Boolean),
 					},
 					security: {
 						loginRateLimitPerMinute: Number(rate.value),
@@ -976,8 +1249,22 @@ PAGES[6].render = async () => {
 	return h(
 		'div',
 		{},
-		pageHead('Cloudflare exposure', 'Single-subdomain public access with no inbound ports. Protect privileged routes with Cloudflare Access.'),
-		status.lockdown && h('div', {class: 'banner'}, h('div', {class: 'grow'}, h('div', {style: 'font-weight:650', text: 'Emergency lockdown is active'}), h('div', {class: 'tiny muted', text: 'The tunnel is stopped and public requests are refused.'})), h('button', {class: 'btn primary', text: 'Release lockdown', onclick: () => lockdown(false)})),
+		pageHead(
+			'Cloudflare exposure',
+			'Single-subdomain public access with no inbound ports. Protect privileged routes with Cloudflare Access.',
+		),
+		status.lockdown &&
+			h(
+				'div',
+				{class: 'banner'},
+				h(
+					'div',
+					{class: 'grow'},
+					h('div', {style: 'font-weight:650', text: 'Emergency lockdown is active'}),
+					h('div', {class: 'tiny muted', text: 'The tunnel is stopped and public requests are refused.'}),
+				),
+				h('button', {class: 'btn primary', text: 'Release lockdown', onclick: () => lockdown(false)}),
+			),
 		h(
 			'div',
 			{class: 'grid cols-2'},
@@ -987,7 +1274,16 @@ PAGES[6].render = async () => {
 				h(
 					'div',
 					{class: 'list'},
-					infoRow('Status', status.lockdown ? pill('Lockdown', 'bad') : status.health?.ready ? dotPill('Connected', 'ok') : status.enabled ? dotPill('Starting', 'warn') : pill('Off')),
+					infoRow(
+						'Status',
+						status.lockdown
+							? pill('Lockdown', 'bad')
+							: status.health?.ready
+								? dotPill('Connected', 'ok')
+								: status.enabled
+									? dotPill('Starting', 'warn')
+									: pill('Off'),
+					),
 					infoRow('Container', status.container.exists ? `${status.container.state}` : 'not created'),
 					infoRow('Health', status.health.ready ? 'ready' : status.health.error || 'not checked'),
 					infoRow('Docker', status.dockerAvailable ? 'available' : 'unavailable'),
@@ -996,18 +1292,100 @@ PAGES[6].render = async () => {
 				h(
 					'div',
 					{class: 'row', style: 'margin-top:14px'},
-					status.enabled ? h('button', {class: 'btn', text: 'Disable', onclick: () => cloudflareAction('disable')}) : h('button', {class: 'btn primary', text: 'Enable tunnel', onclick: () => cloudflareAction('enable')}),
-					h('button', {class: 'btn danger', text: 'Kill switch', onclick: () => confirmAction('Emergency lockdown', 'Stop the tunnel immediately and refuse all public traffic?', 'Lock down', () => lockdown(true), true)}),
+					status.enabled
+						? h('button', {class: 'btn', text: 'Disable', onclick: () => cloudflareAction('disable')})
+						: h('button', {class: 'btn primary', text: 'Enable tunnel', onclick: () => cloudflareAction('enable')}),
+					h('button', {
+						class: 'btn danger',
+						text: 'Kill switch',
+						onclick: () =>
+							confirmAction(
+								'Emergency lockdown',
+								'Stop the tunnel immediately and refuse all public traffic?',
+								'Lock down',
+								() => lockdown(true),
+								true,
+							),
+					}),
 				),
 			),
-			card('Tunnel configuration', null, h('div', {class: 'form'}, h('div', {class: 'field'}, h('label', {text: 'Public hostname'}), hostname), h('div', {class: 'field'}, h('label', {text: 'Mode'}), mode), h('div', {class: 'field'}, h('label', {text: 'Cloudflared image'}), image))),
+			card(
+				'Tunnel configuration',
+				null,
+				h(
+					'div',
+					{class: 'form'},
+					h('div', {class: 'field'}, h('label', {text: 'Public hostname'}), hostname),
+					h('div', {class: 'field'}, h('label', {text: 'Mode'}), mode),
+					h('div', {class: 'field'}, h('label', {text: 'Cloudflared image'}), image),
+				),
+			),
 		),
 		h('div', {class: 'section-label', text: 'Credentials'}),
 		h(
 			'div',
 			{class: 'grid cols-2'},
-			card('Tunnel token', 'Token-based tunnels use ingress rules managed in the Cloudflare dashboard.', h('div', {class: 'form'}, token, h('div', {class: 'row'}, h('button', {class: 'btn', text: 'Store token', onclick: async () => { try { await api('/cloudflare/token', {method: 'POST', body: {token: token.value}}); toast('Token stored', 'ok'); render() } catch (error) { toast(error.message, 'bad') } }}), settings.tokenSet ? h('button', {class: 'btn ghost', text: 'Clear', onclick: async () => { await api('/cloudflare/clear-secret', {method: 'POST', body: {kind: 'token'}}); render() }}) : null))),
-			card('Credentials file', 'Credentials mode writes local ingress rules for the configured hostname.', h('div', {class: 'form'}, credentials, h('button', {class: 'btn', text: 'Store credentials', onclick: async () => { try { await api('/cloudflare/credentials', {method: 'POST', body: {credentials: JSON.parse(credentials.value)}}); toast('Credentials stored', 'ok'); render() } catch (error) { toast(error.message, 'bad') } }}))),
+			card(
+				'Tunnel token',
+				'Token-based tunnels use ingress rules managed in the Cloudflare dashboard.',
+				h(
+					'div',
+					{class: 'form'},
+					token,
+					h(
+						'div',
+						{class: 'row'},
+						h('button', {
+							class: 'btn',
+							text: 'Store token',
+							onclick: async () => {
+								try {
+									await api('/cloudflare/token', {method: 'POST', body: {token: token.value}})
+									toast('Token stored', 'ok')
+									render()
+								} catch (error) {
+									toast(error.message, 'bad')
+								}
+							},
+						}),
+						settings.tokenSet
+							? h('button', {
+									class: 'btn ghost',
+									text: 'Clear',
+									onclick: async () => {
+										await api('/cloudflare/clear-secret', {method: 'POST', body: {kind: 'token'}})
+										render()
+									},
+								})
+							: null,
+					),
+				),
+			),
+			card(
+				'Credentials file',
+				'Credentials mode writes local ingress rules for the configured hostname.',
+				h(
+					'div',
+					{class: 'form'},
+					credentials,
+					h('button', {
+						class: 'btn',
+						text: 'Store credentials',
+						onclick: async () => {
+							try {
+								await api('/cloudflare/credentials', {
+									method: 'POST',
+									body: {credentials: JSON.parse(credentials.value)},
+								})
+								toast('Credentials stored', 'ok')
+								render()
+							} catch (error) {
+								toast(error.message, 'bad')
+							}
+						},
+					}),
+				),
+			),
 		),
 		h('div', {class: 'section-label', text: 'Zero Trust & hardening'}),
 		card(
@@ -1017,11 +1395,34 @@ PAGES[6].render = async () => {
 				'div',
 				{class: 'form'},
 				h('label', {class: 'check'}, accessEnabled, 'Require Cloudflare Access for privileged routes'),
-				h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'Team domain'}), teamDomain), h('div', {class: 'field'}, h('label', {text: 'Audience (AUD) tag'}), audience)),
-				h('div', {class: 'field'}, h('label', {text: 'Allowed emails (comma separated, empty = any Access identity)'}), emails),
+				h(
+					'div',
+					{class: 'row'},
+					h('div', {class: 'field'}, h('label', {text: 'Team domain'}), teamDomain),
+					h('div', {class: 'field'}, h('label', {text: 'Audience (AUD) tag'}), audience),
+				),
+				h(
+					'div',
+					{class: 'field'},
+					h('label', {text: 'Allowed emails (comma separated, empty = any Access identity)'}),
+					emails,
+				),
 				h('div', {class: 'field'}, h('label', {text: 'Protected path prefixes'}), protectedPrefixes),
-				h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'Login rate / minute / IP'}), rate), h('div', {class: 'field'}, h('label', {text: 'Lockout threshold'}), threshold), h('div', {class: 'field'}, h('label', {text: 'Lockout minutes'}), lockout)),
-				h('div', {class: 'row'}, h('label', {class: 'check'}, hsts, 'HSTS'), h('label', {class: 'check'}, strictCsp, 'Strict CSP'), h('label', {class: 'check'}, originLock, 'Origin lock'), h('label', {class: 'check'}, blockDirectIp, 'Block non-Cloudflare origin access')),
+				h(
+					'div',
+					{class: 'row'},
+					h('div', {class: 'field'}, h('label', {text: 'Login rate / minute / IP'}), rate),
+					h('div', {class: 'field'}, h('label', {text: 'Lockout threshold'}), threshold),
+					h('div', {class: 'field'}, h('label', {text: 'Lockout minutes'}), lockout),
+				),
+				h(
+					'div',
+					{class: 'row'},
+					h('label', {class: 'check'}, hsts, 'HSTS'),
+					h('label', {class: 'check'}, strictCsp, 'Strict CSP'),
+					h('label', {class: 'check'}, originLock, 'Origin lock'),
+					h('label', {class: 'check'}, blockDirectIp, 'Block non-Cloudflare origin access'),
+				),
 				h('button', {class: 'btn primary', text: 'Save settings', onclick: save}),
 			),
 		),
@@ -1031,7 +1432,12 @@ PAGES[6].render = async () => {
 }
 
 function infoRow(label, value) {
-	return h('div', {class: 'list-row'}, h('div', {class: 'grow tiny muted', text: label}), h('div', {class: 'tiny'}, value))
+	return h(
+		'div',
+		{class: 'list-row'},
+		h('div', {class: 'grow tiny muted', text: label}),
+		h('div', {class: 'tiny'}, value),
+	)
 }
 
 async function cloudflareAction(action) {
@@ -1056,12 +1462,20 @@ async function lockdown(locked) {
 
 PAGES[7].render = async () => {
 	const [snapshots, autoUpdate, apps] = await Promise.all([api('/snapshots'), api('/auto-update'), api('/apps')])
-	const appSelect = h('select', {}, h('option', {value: '', text: 'Select an app…'}), ...apps.map((app) => h('option', {value: app.id, text: `${app.name} (${app.id})`})))
+	const appSelect = h(
+		'select',
+		{},
+		h('option', {value: '', text: 'Select an app…'}),
+		...apps.map((app) => h('option', {value: app.id, text: `${app.name} (${app.id})`})),
+	)
 	const quotaCpus = h('input', {type: 'number', step: '0.1', min: '0', placeholder: 'e.g. 2'})
 	const quotaMemory = h('input', {type: 'number', min: '64', placeholder: 'e.g. 2048'})
 	const quotaPids = h('input', {type: 'number', min: '16', placeholder: 'e.g. 512'})
 	const quotaVram = h('input', {type: 'number', min: '256', placeholder: 'e.g. 8192 (label only)'})
-	const overrideText = h('textarea', {placeholder: 'services:\n  web:\n    environment:\n      MY_FLAG: "1"', style: 'min-height:120px'})
+	const overrideText = h('textarea', {
+		placeholder: 'services:\n  web:\n    environment:\n      MY_FLAG: "1"',
+		style: 'min-height:120px',
+	})
 	const loadOverride = async () => {
 		if (!appSelect.value) return
 		try {
@@ -1102,7 +1516,10 @@ PAGES[7].render = async () => {
 	return h(
 		'div',
 		{},
-		pageHead('Snapshots & limits', 'Per-app resources, persistent compose overrides, encrypted configuration snapshots, and maintenance windows.'),
+		pageHead(
+			'Snapshots & limits',
+			'Per-app resources, persistent compose overrides, encrypted configuration snapshots, and maintenance windows.',
+		),
 		h(
 			'div',
 			{class: 'grid cols-2'},
@@ -1133,8 +1550,30 @@ PAGES[7].render = async () => {
 									h(
 										'div',
 										{class: 'list-row'},
-										h('div', {class: 'grow'}, h('div', {text: snapshot.reason}), h('div', {class: 'tiny faint', text: `${fmtDate(snapshot.createdAt)} · ${bytes(snapshot.sizeBytes)} · ${snapshot.encryptedWith}`})),
-										h('button', {class: 'btn sm', text: 'Restore', onclick: () => confirmAction('Restore snapshot', `Restore ${snapshot.id}? A restart is required afterwards.`, 'Restore', async () => { await api(`/snapshots/${snapshot.id}/restore`, {method: 'POST', body: {}}); toast('Restored. Restart umbreld to apply.', 'ok') }, true)}),
+										h(
+											'div',
+											{class: 'grow'},
+											h('div', {text: snapshot.reason}),
+											h('div', {
+												class: 'tiny faint',
+												text: `${fmtDate(snapshot.createdAt)} · ${bytes(snapshot.sizeBytes)} · ${snapshot.encryptedWith}`,
+											}),
+										),
+										h('button', {
+											class: 'btn sm',
+											text: 'Restore',
+											onclick: () =>
+												confirmAction(
+													'Restore snapshot',
+													`Restore ${snapshot.id}? A restart is required afterwards.`,
+													'Restore',
+													async () => {
+														await api(`/snapshots/${snapshot.id}/restore`, {method: 'POST', body: {}})
+														toast('Restored. Restart umbreld to apply.', 'ok')
+													},
+													true,
+												),
+										}),
 									),
 								),
 							)
@@ -1148,14 +1587,32 @@ PAGES[7].render = async () => {
 					'div',
 					{class: 'form'},
 					h('label', {class: 'check'}, autoEnabled, 'Enable automatic app updates'),
-					h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'Start (HH:MM)'}), autoStart), h('div', {class: 'field'}, h('label', {text: 'End (HH:MM)'}), autoEnd)),
+					h(
+						'div',
+						{class: 'row'},
+						h('div', {class: 'field'}, h('label', {text: 'Start (HH:MM)'}), autoStart),
+						h('div', {class: 'field'}, h('label', {text: 'End (HH:MM)'}), autoEnd),
+					),
 					h('div', {class: 'field'}, h('label', {text: 'Days (0=Sunday … 6=Saturday)'}), autoDays),
 					h('button', {
 						class: 'btn primary',
 						text: 'Save window',
 						onclick: async () => {
 							try {
-								await api('/auto-update', {method: 'POST', body: {enabled: autoEnabled.checked, window: {start: autoStart.value, end: autoEnd.value, days: autoDays.value.split(',').map(Number).filter((day) => day >= 0 && day <= 6)}}})
+								await api('/auto-update', {
+									method: 'POST',
+									body: {
+										enabled: autoEnabled.checked,
+										window: {
+											start: autoStart.value,
+											end: autoEnd.value,
+											days: autoDays.value
+												.split(',')
+												.map(Number)
+												.filter((day) => day >= 0 && day <= 6),
+										},
+									},
+								})
 								toast('Auto-update saved', 'ok')
 							} catch (error) {
 								toast(error.message, 'bad')
@@ -1173,29 +1630,79 @@ PAGES[7].render = async () => {
 				'div',
 				{class: 'form'},
 				appSelect,
-				h('div', {class: 'row'}, h('div', {class: 'field'}, h('label', {text: 'CPU limit'}), quotaCpus), h('div', {class: 'field'}, h('label', {text: 'Memory (MB)'}), quotaMemory), h('div', {class: 'field'}, h('label', {text: 'PIDs'}), quotaPids), h('div', {class: 'field'}, h('label', {text: 'VRAM label (MB)'}), quotaVram)),
+				h(
+					'div',
+					{class: 'row'},
+					h('div', {class: 'field'}, h('label', {text: 'CPU limit'}), quotaCpus),
+					h('div', {class: 'field'}, h('label', {text: 'Memory (MB)'}), quotaMemory),
+					h('div', {class: 'field'}, h('label', {text: 'PIDs'}), quotaPids),
+					h('div', {class: 'field'}, h('label', {text: 'VRAM label (MB)'}), quotaVram),
+				),
 				overrideText,
-				h('div', {class: 'row'}, h('button', {class: 'btn primary', text: 'Save override', onclick: saveOverride}), h('button', {class: 'btn danger', text: 'Remove', onclick: async () => { try { await api(`/apps/${appSelect.value}/overrides`, {method: 'DELETE'}); toast('Removed', 'ok'); loadOverride() } catch (error) { toast(error.message, 'bad') } }})),
+				h(
+					'div',
+					{class: 'row'},
+					h('button', {class: 'btn primary', text: 'Save override', onclick: saveOverride}),
+					h('button', {
+						class: 'btn danger',
+						text: 'Remove',
+						onclick: async () => {
+							try {
+								await api(`/apps/${appSelect.value}/overrides`, {method: 'DELETE'})
+								toast('Removed', 'ok')
+								loadOverride()
+							} catch (error) {
+								toast(error.message, 'bad')
+							}
+						},
+					}),
+				),
 			),
 		),
 	)
 }
 
 function statCard(label, value, sub, extra) {
-	return h('div', {class: 'card'}, h('div', {class: 'tiny muted', text: label}), h('div', {class: 'stat'}, value), extra || (sub && h('div', {class: 'tiny faint', text: sub})))
+	return h(
+		'div',
+		{class: 'card'},
+		h('div', {class: 'tiny muted', text: label}),
+		h('div', {class: 'stat'}, value),
+		extra || (sub && h('div', {class: 'tiny faint', text: sub})),
+	)
 }
 
 function actionCard(title, subtitle, label, action) {
-	return h('div', {class: 'card'}, h('div', {class: 'card-title', text: title}), h('p', {class: 'card-sub', text: subtitle}), h('button', {class: 'btn sm', style: 'margin-top:14px', text: label, onclick: action}))
+	return h(
+		'div',
+		{class: 'card'},
+		h('div', {class: 'card-title', text: title}),
+		h('p', {class: 'card-sub', text: subtitle}),
+		h('button', {class: 'btn sm', style: 'margin-top:14px', text: label, onclick: action}),
+	)
 }
 
 function outcomePill(outcome) {
-	const kind = outcome === 'success' ? 'ok' : outcome === 'denied' || outcome === 'failure' ? 'bad' : outcome === 'pending' ? 'warn' : ''
+	const kind =
+		outcome === 'success'
+			? 'ok'
+			: outcome === 'denied' || outcome === 'failure'
+				? 'bad'
+				: outcome === 'pending'
+					? 'warn'
+					: ''
 	return pill(outcome, kind)
 }
 
 function statusPill(status) {
-	const kind = status === 'installed' ? 'ok' : status === 'denied' || status === 'failed' ? 'bad' : status === 'pending' || status === 'installing' ? 'warn' : ''
+	const kind =
+		status === 'installed'
+			? 'ok'
+			: status === 'denied' || status === 'failed'
+				? 'bad'
+				: status === 'pending' || status === 'installing'
+					? 'warn'
+					: ''
 	return pill(status, kind)
 }
 

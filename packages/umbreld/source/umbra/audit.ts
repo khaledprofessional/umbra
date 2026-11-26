@@ -211,14 +211,16 @@ export default class AuditLog {
 		await this.#appendQueue
 	}
 
-	async query(options: {
-		limit?: number
-		before?: number
-		type?: string
-		actorId?: string
-		outcome?: string
-		search?: string
-	} = {}): Promise<{events: AuditEntry[]; nextCursor: number | null; scanned: number}> {
+	async query(
+		options: {
+			limit?: number
+			before?: number
+			type?: string
+			actorId?: string
+			outcome?: string
+			search?: string
+		} = {},
+	): Promise<{events: AuditEntry[]; nextCursor: number | null; scanned: number}> {
 		await this.flush()
 		const limit = Math.min(Math.max(options.limit ?? 100, 1), 500)
 		const files = (await this.#files()).reverse()
