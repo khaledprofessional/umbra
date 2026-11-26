@@ -3,9 +3,9 @@ import {readFile} from 'node:fs/promises'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
-import type Umbra from './index.js'
-import type {HttpRequest, HttpResponse, NextFunction, Principal, UmbrelLike} from './types.js'
-import {HttpError, errorMessage, isRecord, parseJsonObject} from './util.js'
+import type Umbra from './index.ts'
+import type {HttpRequest, HttpResponse, NextFunction, Principal, UmbrelLike} from './types.ts'
+import {HttpError, errorMessage, isRecord, parseJsonObject} from './util.ts'
 
 const WEB_DIRECTORY = fileURLToPath(new URL('./web/', import.meta.url))
 const MAX_BODY_BYTES = 8 * 1024 * 1024

@@ -1,21 +1,21 @@
 import path from 'node:path'
 
-import AppAccessManager from './access.js'
-import AgentRegistry from './agents.js'
-import AppPathProxy from './app-proxy.js'
-import AuditLog from './audit.js'
-import CloudflareManager from './cloudflare.js'
-import ConfigStore from './config.js'
-import EdgeGuard from './edge.js'
-import {AppOverrideManager, AutoUpdateManager, SnapshotManager} from './extras.js'
-import {ensureDir} from './fs-util.js'
-import {fetchAndSanitizeAvatar} from './image.js'
-import createUmbraRouter from './http.js'
-import PluginManager from './plugins.js'
-import SecretStore from './secrets.js'
-import TerminalExecutor, {ApprovalManager} from './terminal.js'
-import type {HttpRequest, LoggerLike, Middleware, UmbrelLike} from './types.js'
-import {HttpError, isRecord, redact} from './util.js'
+import AppAccessManager from './access.ts'
+import AgentRegistry from './agents.ts'
+import AppPathProxy from './app-proxy.ts'
+import AuditLog from './audit.ts'
+import CloudflareManager from './cloudflare.ts'
+import ConfigStore from './config.ts'
+import EdgeGuard from './edge.ts'
+import {AppOverrideManager, AutoUpdateManager, SnapshotManager} from './extras.ts'
+import {ensureDir} from './fs-util.ts'
+import {fetchAndSanitizeAvatar} from './image.ts'
+import createUmbraRouter from './http.ts'
+import PluginManager from './plugins.ts'
+import SecretStore from './secrets.ts'
+import TerminalExecutor, {ApprovalManager} from './terminal.ts'
+import type {HttpRequest, LoggerLike, Middleware, UmbrelLike} from './types.ts'
+import {HttpError, isRecord, redact} from './util.ts'
 
 export type UmbraOptions = {
 	umbreld: UmbrelLike
@@ -305,7 +305,7 @@ export default class Umbra {
 		const policy = await this.terminal.policyFor(context.agent.tokenId)
 		// Non-literal so this module stays independently type-checkable without
 		// umbreld's MCP dependencies installed.
-		const modulePath: string = './mcp-tools.js'
+		const modulePath: string = './mcp-tools.ts'
 		const register = (await import(modulePath)).default
 		register(server as never, context as never, permissions as never, this, policy.mode)
 	}

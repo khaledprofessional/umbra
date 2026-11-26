@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto'
 
-import {isRecord, stableJson} from './util.js'
+import {isRecord, stableJson} from './util.ts'
 
 export const PLUGIN_API_VERSION = '1.0'
 export const MAX_PLUGIN_FILES = 200

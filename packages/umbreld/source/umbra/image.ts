@@ -3,7 +3,7 @@ import http from 'node:http'
 import https from 'node:https'
 import net from 'node:net'
 
-import {HttpError, sha256} from './util.js'
+import {HttpError, sha256} from './util.ts'
 
 export type SanitizedImage = {
 	data: Buffer

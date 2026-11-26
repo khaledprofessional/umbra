@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {generateKeyPairSync, sign} from 'node:crypto'
 import {describe, it} from 'node:test'
 
-import AccessJwtVerifier, {AccessJwtError} from '../cloudflare-jwt.js'
+import AccessJwtVerifier, {AccessJwtError} from '../cloudflare-jwt.ts'
 
 const {privateKey, publicKey} = generateKeyPairSync('rsa', {modulusLength: 2048})
 const jwk = publicKey.export({format: 'jwk'})

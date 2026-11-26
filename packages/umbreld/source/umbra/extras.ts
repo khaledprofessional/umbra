@@ -3,13 +3,13 @@ import {gzipSync, gunzipSync} from 'node:zlib'
 import {readdir, readFile} from 'node:fs/promises'
 import path from 'node:path'
 
-import type AuditLog from './audit.js'
-import type ConfigStore from './config.js'
-import type {AppQuota} from './config.js'
-import {ensureDir, readJsonOrNull, removeIfExists, writeFileAtomic, writeJsonAtomic} from './fs-util.js'
-import SecretStore, {derivePassphraseKey, openWithKey, sealWithKey, type SealedSecret} from './secrets.js'
-import type {UmbrelLike} from './types.js'
-import {HttpError, isRecord, randomId, stableJson} from './util.js'
+import type AuditLog from './audit.ts'
+import type ConfigStore from './config.ts'
+import type {AppQuota} from './config.ts'
+import {ensureDir, readJsonOrNull, removeIfExists, writeFileAtomic, writeJsonAtomic} from './fs-util.ts'
+import SecretStore, {derivePassphraseKey, openWithKey, sealWithKey, type SealedSecret} from './secrets.ts'
+import type {UmbrelLike} from './types.ts'
+import {HttpError, isRecord, randomId, stableJson} from './util.ts'
 
 const MAX_CUSTOM_OVERRIDE_BYTES = 64 * 1024
 const MAX_SNAPSHOT_BYTES = 8 * 1024 * 1024

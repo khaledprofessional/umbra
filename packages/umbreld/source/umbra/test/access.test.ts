@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import {after, before, describe, it} from 'node:test'
 
-import AppAccessManager from '../access.js'
-import AuditLog from '../audit.js'
-import ConfigStore from '../config.js'
-import {cleanup, makeApp, makeTempDir, makeUmbreld, silentLogger} from './helpers.js'
+import AppAccessManager from '../access.ts'
+import AuditLog from '../audit.ts'
+import ConfigStore from '../config.ts'
+import {cleanup, makeApp, makeTempDir, makeUmbreld, silentLogger} from './helpers.ts'
 
 describe('member app permissions and request queue', () => {
 	let directory: string

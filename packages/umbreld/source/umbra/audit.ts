@@ -2,8 +2,8 @@ import {createHmac, randomBytes} from 'node:crypto'
 import {appendFile, chmod, mkdir, open, readFile, readdir, stat, unlink} from 'node:fs/promises'
 import path from 'node:path'
 
-import {pathExists} from './fs-util.js'
-import {isRecord, randomId, redact, sha256, stableJson} from './util.js'
+import {pathExists} from './fs-util.ts'
+import {isRecord, randomId, redact, sha256, stableJson} from './util.ts'
 
 export type AuditActorType = 'agent' | 'user' | 'system'
 export type AuditOutcome = 'success' | 'failure' | 'denied' | 'pending'

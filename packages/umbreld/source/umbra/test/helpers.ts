@@ -2,7 +2,7 @@ import {mkdtemp, rm} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
 
-import type {AppLike, UmbrelLike} from '../types.js'
+import type {AppLike, UmbrelLike} from '../types.ts'
 
 export async function makeTempDir(prefix = 'umbra-test-'): Promise<string> {
 	return mkdtemp(path.join(tmpdir(), prefix))

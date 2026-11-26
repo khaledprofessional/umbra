@@ -2,12 +2,12 @@ import assert from 'node:assert/strict'
 import {existsSync} from 'node:fs'
 import {after, before, describe, it} from 'node:test'
 
-import AgentRegistry from '../agents.js'
-import AuditLog from '../audit.js'
-import ConfigStore from '../config.js'
-import SecretStore from '../secrets.js'
-import TerminalExecutor, {ApprovalManager} from '../terminal.js'
-import {cleanup, makeTempDir} from './helpers.js'
+import AgentRegistry from '../agents.ts'
+import AuditLog from '../audit.ts'
+import ConfigStore from '../config.ts'
+import SecretStore from '../secrets.ts'
+import TerminalExecutor, {ApprovalManager} from '../terminal.ts'
+import {cleanup, makeTempDir} from './helpers.ts'
 
 const TOKEN = 'a'.repeat(32)
 

@@ -1,9 +1,9 @@
-import type AuditLog from './audit.js'
-import type CloudflareManager from './cloudflare.js'
-import AccessJwtVerifier, {AccessJwtError} from './cloudflare-jwt.js'
-import type ConfigStore from './config.js'
-import type {HttpRequest, HttpResponse, Middleware, NextFunction, RequestContext} from './types.js'
-import {randomId} from './util.js'
+import type AuditLog from './audit.ts'
+import type CloudflareManager from './cloudflare.ts'
+import AccessJwtVerifier, {AccessJwtError} from './cloudflare-jwt.ts'
+import type ConfigStore from './config.ts'
+import type {HttpRequest, HttpResponse, Middleware, NextFunction, RequestContext} from './types.ts'
+import {randomId} from './util.ts'
 
 type FailureBucket = {failures: number; firstFailureAt: number; lockedUntil: number}
 type RateBucket = {tokens: number; updatedAt: number}

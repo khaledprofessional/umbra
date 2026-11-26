@@ -2,12 +2,12 @@ import {spawn} from 'node:child_process'
 import http from 'node:http'
 import path from 'node:path'
 
-import type AuditLog from './audit.js'
-import type ConfigStore from './config.js'
-import {isValidHostname, type CloudflareAccessConfig, type CloudflareSecurityConfig} from './config.js'
-import {ensureDir, writeFileAtomic} from './fs-util.js'
-import type SecretStore from './secrets.js'
-import {HttpError, isRecord, sleep} from './util.js'
+import type AuditLog from './audit.ts'
+import type ConfigStore from './config.ts'
+import {isValidHostname, type CloudflareAccessConfig, type CloudflareSecurityConfig} from './config.ts'
+import {ensureDir, writeFileAtomic} from './fs-util.ts'
+import type SecretStore from './secrets.ts'
+import {HttpError, isRecord, sleep} from './util.ts'
 
 const CONTAINER_NAME = 'umbra-cloudflared'
 const METRICS_PORT = 20241

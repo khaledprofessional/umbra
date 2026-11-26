@@ -3,8 +3,8 @@ import {readdir, readFile, writeFile} from 'node:fs/promises'
 import path from 'node:path'
 import {after, before, describe, it} from 'node:test'
 
-import AuditLog from '../audit.js'
-import {cleanup, makeTempDir} from './helpers.js'
+import AuditLog from '../audit.ts'
+import {cleanup, makeTempDir} from './helpers.ts'
 
 describe('audit log', () => {
 	let directory: string

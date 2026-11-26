@@ -2,7 +2,7 @@ import {constants} from 'node:fs'
 import {access, chmod, mkdir, open, readdir, readFile, realpath, rename, rm, stat} from 'node:fs/promises'
 import path from 'node:path'
 
-import {isRecord} from './util.js'
+import {isRecord} from './util.ts'
 
 export async function ensureDir(directory: string, mode = 0o700): Promise<void> {
 	await mkdir(directory, {recursive: true, mode})

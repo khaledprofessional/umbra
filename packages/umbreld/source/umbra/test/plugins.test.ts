@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict'
 import {after, before, describe, it} from 'node:test'
 
-import AuditLog from '../audit.js'
-import ConfigStore from '../config.js'
-import PluginManager from '../plugins.js'
-import {cleanup, makeTempDir, makeUmbreld, silentLogger} from './helpers.js'
+import AuditLog from '../audit.ts'
+import ConfigStore from '../config.ts'
+import PluginManager from '../plugins.ts'
+import {cleanup, makeTempDir, makeUmbreld, silentLogger} from './helpers.ts'
 
 const manifest = {
 	schemaVersion: 1,

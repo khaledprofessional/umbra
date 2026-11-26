@@ -37,7 +37,14 @@ if [ ! -f "${RUNTIME_DIR}/tools/integrate.mjs" ]; then
 	exit 0
 fi
 if command -v node >/dev/null 2>&1; then
-	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --from "${RUNTIME_DIR}" --quiet >>"${LOG}" 2>&1 || true
+	if [ -d /opt/umbreld/source ]; then
+		rm -rf /opt/umbreld/source/umbra
+		cp -a "${RUNTIME_DIR}" /opt/umbreld/source/umbra 2>/dev/null || true
+	fi
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --revert --quiet >>"${LOG}" 2>&1 || true
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --from "${RUNTIME_DIR}" --quiet >>"${LOG}" 2>&1 || {
+		node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --revert --quiet >>"${LOG}" 2>&1 || true
+	}
 fi
 exit 0
 HOOK
@@ -45,6 +52,9 @@ HOOK
 fi
 
 if command -v node >/dev/null 2>&1 && [ -f "${RUNTIME_DIR}/tools/integrate.mjs" ]; then
-	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --quiet >>"${LOG}" 2>&1 || true
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --revert --quiet >>"${LOG}" 2>&1 || true
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --from "${RUNTIME_DIR}" --quiet >>"${LOG}" 2>&1 || {
+		node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --revert --quiet >>"${LOG}" 2>&1 || true
+	}
 fi
 exit 0

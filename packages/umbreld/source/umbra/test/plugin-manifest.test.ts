@@ -7,7 +7,7 @@ import {
 	validatePluginFiles,
 	validateSettings,
 	type PluginManifest,
-} from '../plugin-manifest.js'
+} from '../plugin-manifest.ts'
 
 const base: PluginManifest = {
 	schemaVersion: 1,

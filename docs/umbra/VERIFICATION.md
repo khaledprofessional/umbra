@@ -14,6 +14,7 @@ Environment: Windows host, Node 24.22.1, TypeScript 5.8.3. Upstream base: `getum
 | Translations | `node update-translations.js --validate` | passed |
 | Integration doctor | `node source/umbra/tools/integrate.mjs --check` | complete |
 | Fresh 2.0.1 anchors | integrator against a pristine copy of the 2.0.1 files | 12/12 patches applied, idempotent |
+| 2.1 compatibility | integrator against `master` bridge files; native Node type stripping | 12/12 patches; runtime imports load under both loaders |
 | Shell syntax | `bash -n` on app-script, bootstrap, overlay bootstrap | 0 errors |
 | Existing component tests | install button + settings catalog suites | pass |
 

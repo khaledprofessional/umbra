@@ -3,11 +3,11 @@ import {spawn} from 'node:child_process'
 import path from 'node:path'
 import {stat} from 'node:fs/promises'
 
-import type AuditLog from './audit.js'
-import type AgentRegistry from './agents.js'
-import type ConfigStore from './config.js'
-import type {TerminalMode} from './config.js'
-import {HttpError, randomId} from './util.js'
+import type AuditLog from './audit.ts'
+import type AgentRegistry from './agents.ts'
+import type ConfigStore from './config.ts'
+import type {TerminalMode} from './config.ts'
+import {HttpError, randomId} from './util.ts'
 
 export type ApprovalRequest = {
 	id: string

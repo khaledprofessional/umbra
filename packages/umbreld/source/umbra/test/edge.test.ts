@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict'
 import {after, before, describe, it} from 'node:test'
 
-import AuditLog from '../audit.js'
-import type CloudflareManager from '../cloudflare.js'
-import ConfigStore from '../config.js'
-import EdgeGuard from '../edge.js'
-import type {HttpRequest, HttpResponse} from '../types.js'
-import {cleanup, makeTempDir} from './helpers.js'
+import AuditLog from '../audit.ts'
+import type CloudflareManager from '../cloudflare.ts'
+import ConfigStore from '../config.ts'
+import EdgeGuard from '../edge.ts'
+import type {HttpRequest, HttpResponse} from '../types.ts'
+import {cleanup, makeTempDir} from './helpers.ts'
 
 function request(overrides: Partial<HttpRequest> = {}): HttpRequest {
 	return {

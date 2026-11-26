@@ -4,10 +4,10 @@ import {cpus, freemem, loadavg, totalmem, uptime} from 'node:os'
 import path from 'node:path'
 import {fileURLToPath} from 'node:url'
 
-import type AuditLog from './audit.js'
-import type ConfigStore from './config.js'
-import type {PluginRecord} from './config.js'
-import {ensureDir, readJsonOrNull, removeIfExists, resolveInside, writeFileAtomic, writeJsonAtomic} from './fs-util.js'
+import type AuditLog from './audit.ts'
+import type ConfigStore from './config.ts'
+import type {PluginRecord} from './config.ts'
+import {ensureDir, readJsonOrNull, removeIfExists, resolveInside, writeFileAtomic, writeJsonAtomic} from './fs-util.ts'
 import {
 	MAX_PLUGIN_BYTES,
 	scaffoldPlugin,
@@ -17,9 +17,9 @@ import {
 	type PluginFile,
 	type PluginManifest,
 	type PluginPermission,
-} from './plugin-manifest.js'
-import type {UmbrelLike} from './types.js'
-import {HttpError, isRecord, randomId, sleep} from './util.js'
+} from './plugin-manifest.ts'
+import type {UmbrelLike} from './types.ts'
+import {HttpError, isRecord, randomId, sleep} from './util.ts'
 
 const RUNTIME_PATH = fileURLToPath(new URL('./plugin-runtime.mjs', import.meta.url))
 // On Linux, a fresh network namespace is the only reliable way to stop a
@@ -27,6 +27,10 @@ const RUNTIME_PATH = fileURLToPath(new URL('./plugin-runtime.mjs', import.meta.u
 // I/O). IPC over the inherited fd still works through unshare.
 const UNSHARE_PATH =
 	process.platform === 'linux' ? ['/usr/bin/unshare', '/bin/unshare'].find((path) => existsSync(path)) : undefined
+// Node 22 builds name the sandbox flag differently.
+const NODE_PERMISSION_FLAG = process.allowedNodeEnvironmentFlags.has('--permission')
+	? '--permission'
+	: '--experimental-permission'
 const PLUGIN_ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])?)+$/
 const STORAGE_LIMIT_BYTES = 256 * 1024
 const MAX_RESTARTS = 3
@@ -90,7 +94,7 @@ class PluginSandbox {
 		const entry = this.#context.manifest.entry
 		if (!entry) return
 		const nodeArguments = [
-			'--permission',
+			NODE_PERMISSION_FLAG,
 			`--allow-fs-read=${this.#context.directory}`,
 			`--allow-fs-read=${RUNTIME_PATH}`,
 			'--max-old-space-size=128',

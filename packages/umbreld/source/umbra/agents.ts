@@ -1,10 +1,10 @@
 import path from 'node:path'
 
-import AuditLog from './audit.js'
-import type ConfigStore from './config.js'
-import {ensureDir, pathExists, readJsonOrNull, removeIfExists, writeJsonAtomic, writeFileAtomic} from './fs-util.js'
-import type {SanitizedImage} from './image.js'
-import type SecretStore from './secrets.js'
+import AuditLog from './audit.ts'
+import type ConfigStore from './config.ts'
+import {ensureDir, pathExists, readJsonOrNull, removeIfExists, writeJsonAtomic, writeFileAtomic} from './fs-util.ts'
+import type {SanitizedImage} from './image.ts'
+import type SecretStore from './secrets.ts'
 
 export type AgentTerminalMode = 'inherit' | 'deny' | 'ask' | 'always'
 

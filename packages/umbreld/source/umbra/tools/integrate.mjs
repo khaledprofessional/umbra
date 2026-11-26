@@ -20,17 +20,25 @@ import {fileURLToPath} from 'node:url'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
 function parseArgs(argv) {
-	const args = {repo: path.resolve(HERE, '../../..'), data: undefined, check: false, quiet: false, from: undefined}
+	const args = {
+		repo: path.resolve(HERE, '../../..'),
+		data: undefined,
+		check: false,
+		quiet: false,
+		from: undefined,
+		revert: false,
+	}
 	for (let index = 2; index < argv.length; index++) {
 		const value = argv[index]
 		if (value === '--repo') args.repo = path.resolve(argv[++index])
 		else if (value === '--data') args.data = path.resolve(argv[++index])
 		else if (value === '--from') args.from = path.resolve(argv[++index])
 		else if (value === '--check') args.check = true
+		else if (value === '--revert') args.revert = true
 		else if (value === '--quiet') args.quiet = true
 		else if (value === '--help') {
 			console.log(
-				'Usage: node tools/integrate.mjs [--repo <umbreld>] [--data <umbra data>] [--from <runtime>] [--check]',
+				'Usage: node tools/integrate.mjs [--repo <umbreld>] [--data <umbra data>] [--from <runtime>] [--check] [--revert]',
 			)
 			process.exit(0)
 		}
@@ -45,7 +53,8 @@ const TS_BLOCKS = {
 	import: {
 		file: 'source/index.ts',
 		anchor: "import Mcp, {type McpStoreSettings} from './modules/mcp/mcp.js'",
-		block: "// <umbra:import>\nimport Umbra from './umbra/index.js'\n// </umbra:import>",
+		altAnchors: ["import Mcp, {type McpStoreSettings} from './modules/mcp/mcp.ts'"],
+		block: "// <umbra:import>\nimport Umbra from './umbra/index.ts'\n// </umbra:import>",
 	},
 	property: {
 		file: 'source/index.ts',
@@ -134,12 +143,24 @@ const TS_BLOCKS = {
 	},
 	preUpdate: {
 		file: 'source/modules/system/update.ts',
+		optional: true,
 		anchor: "setUpdateStatus({running: true, progress: 0, description: 'Updating...', error: false})",
 		block: [
 			'\t// <umbra:pre-update>',
 			'\t// Capture the custom configuration before the A/B update replaces root.',
 			"\tawait umbreld.umbra?.snapshots.create('pre-os-update', {type: 'system', id: 'os-update'}).catch((error) => umbreld.logger.error('Pre-update snapshot failed', error))",
 			'\t// </umbra:pre-update>',
+		].join('\n'),
+		position: 'before',
+	},
+	preUpdate21: {
+		file: 'source/modules/update/update.ts',
+		optional: true,
+		anchor: "if (this.#status.running) throw new Error('An update is already running')",
+		block: [
+			'\t\t// <umbra:pre-update21>',
+			"\t\tawait this.#umbreld.umbra?.snapshots.create('pre-os-update', {type: 'system', id: 'os-update'}).catch((error) => this.logger.error('Pre-update snapshot failed', error))",
+			'\t\t// </umbra:pre-update21>',
 		].join('\n'),
 		position: 'before',
 	},
@@ -184,50 +205,63 @@ function indentBlock(block, indent) {
 		.join('\n')
 }
 
-async function applyPatch(patch, {check}) {
+async function applyPatch(patch, {check, sourceContents}) {
 	const filePath = path.join(args.repo, patch.file)
-	if (!existsSync(filePath)) return {ok: false, changed: false, reason: `missing file ${patch.file}`}
-	let contents = await readFile(filePath, 'utf8')
+	if (!existsSync(filePath)) {
+		return patch.optional
+			? {ok: true, changed: false, skipped: true, reason: `optional file missing ${patch.file}`}
+			: {ok: false, changed: false, reason: `missing file ${patch.file}`}
+	}
+	let contents = sourceContents ?? (await readFile(filePath, 'utf8'))
 	// Upstream files are LF; normalize a Windows checkout so anchors match and
 	// the patched shell script keeps working on the device.
 	contents = contents.replace(/\r\n/g, '\n')
 	const pattern = markerPattern(patch.marker ?? patchName(patch))
 	const hasMarker = pattern.test(contents)
 	if (hasMarker) {
+		const next = contents.replace(pattern, patch.block)
 		if (check) return {ok: true, changed: false}
-		contents = contents.replace(pattern, patch.block)
-		await writeFile(filePath, contents)
-		return {ok: true, changed: true}
+		return {ok: true, changed: next !== contents, contents: next}
 	}
-	if (patch.replacement && contents.includes(patch.replacement.split('\n').slice(0, 3).join('\n'))) {
-		// Already in the upstream-shaped form without markers: leave it alone only
-		// if the marked block is already present (handled above).
-	}
-	if (!contents.includes(patch.anchor)) {
-		return {ok: false, changed: false, reason: `anchor not found in ${patch.file}`}
+	const anchor = [patch.anchor, ...(patch.altAnchors ?? [])].find((candidate) => contents.includes(candidate))
+	if (!anchor) {
+		return patch.optional
+			? {ok: true, changed: false, skipped: true, reason: `optional anchor missing in ${patch.file}`}
+			: {ok: false, changed: false, reason: `anchor not found in ${patch.file}`}
 	}
 	if (check) return {ok: false, changed: true, reason: `integration missing in ${patch.file}`}
 	// Insert after the anchor's full statement. For multi-line anchors, use the
 	// anchor text itself, then add the block, preserving indentation.
-	const anchorIndex = contents.indexOf(patch.anchor)
-	const anchorEnd = anchorIndex + patch.anchor.length
+	const anchorIndex = contents.indexOf(anchor)
+	const anchorEnd = anchorIndex + anchor.length
 	const before = contents.slice(0, anchorEnd)
 	const after = contents.slice(anchorEnd)
-	const block = patch.position === 'before' ? `${patch.block}\n${patch.anchor}` : `${patch.anchor}\n${patch.block}`
-	contents =
+	const next =
 		patch.position === 'before'
-			? before.slice(0, anchorIndex) + `${patch.block}\n` + patch.anchor + after
+			? before.slice(0, anchorIndex) + `${patch.block}\n` + anchor + after
 			: before + `\n${patch.block}` + after
-	if (patch.file.endsWith('.ts')) {
-		// No reformat: the blocks already carry the repository's tab indentation.
-	}
-	await writeFile(filePath, contents, 'utf8')
-	return {ok: true, changed: true}
+	return {ok: true, changed: true, contents: next}
 }
 
 function patchName(patch) {
 	for (const [name, value] of Object.entries(TS_BLOCKS)) if (value === patch) return name
 	return 'unknown'
+}
+
+async function revertAll() {
+	let removed = 0
+	for (const [name, patch] of Object.entries(TS_BLOCKS)) {
+		const filePath = path.join(args.repo, patch.file)
+		if (!existsSync(filePath)) continue
+		let contents = await readFile(filePath, 'utf8')
+		const pattern = markerPattern(patch.marker ?? name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`))
+		if (!pattern.test(contents)) continue
+		contents = contents.replace(pattern, '')
+		await writeFile(filePath, contents.replace(/\r\n/g, '\n'), 'utf8')
+		removed++
+		log(`reverted ${name} -> ${patch.file}`)
+	}
+	return removed
 }
 
 async function copyRuntime() {
@@ -236,7 +270,7 @@ async function copyRuntime() {
 	if (!existsSync(source)) return {copied: false, reason: 'runtime source missing'}
 	// After a stock OTA, /opt/umbreld/source/umbra is gone. Restore it from the
 	// persistent copy before the bridge import is added, otherwise umbreld
-	// would fail to resolve ./umbra/index.js at boot.
+	// would fail to resolve ./umbra/index.ts at boot.
 	const repoRuntime = path.join(args.repo, 'source', 'umbra')
 	if (!existsSync(repoRuntime)) {
 		await mkdir(path.dirname(repoRuntime), {recursive: true})
@@ -256,16 +290,31 @@ async function copyRuntime() {
 }
 
 const patches = new Map(Object.entries(TS_BLOCKS))
+if (args.revert) {
+	const removed = await revertAll()
+	log(removed ? `reverted ${removed} file(s)` : 'nothing to revert')
+	process.exit(0)
+}
 let failures = 0
 let changes = 0
 const results = []
+const pending = new Map()
 for (const [name, patch] of patches) {
 	patch.marker = name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)
-	const result = await applyPatch(patch, {check: args.check})
+	const result = await applyPatch(patch, {check: args.check, sourceContents: pending.get(patch.file)})
 	results.push({name, file: patch.file, ...result})
+	if (result.ok && result.contents) pending.set(patch.file, result.contents)
 	if (!result.ok) failures++
 	if (result.changed) changes++
 	if (result.ok && result.changed) log(`applied ${name} -> ${patch.file}`)
+	if (result.skipped) log(`skipped optional ${name}: ${result.reason}`)
+}
+if (!args.check && !failures) {
+	// Transactional: write only after every required bridge resolved. A partial
+	// patch used to leave umbreld unable to boot its own entrypoint.
+	for (const [file, contents] of pending) {
+		await writeFile(path.join(args.repo, file), contents, 'utf8')
+	}
 }
 if (args.check) {
 	if (changes || failures) {

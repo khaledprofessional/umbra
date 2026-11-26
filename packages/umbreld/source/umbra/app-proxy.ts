@@ -1,9 +1,9 @@
 import http from 'node:http'
 import path from 'node:path'
 
-import type Umbra from './index.js'
-import type {HttpRequest, HttpResponse, Middleware, NextFunction, Principal, UmbrelLike} from './types.js'
-import {HttpError, isRecord} from './util.js'
+import type Umbra from './index.ts'
+import type {HttpRequest, HttpResponse, Middleware, NextFunction, Principal, UmbrelLike} from './types.ts'
+import {HttpError, isRecord} from './util.ts'
 
 const MAX_HTML_BYTES = 2 * 1024 * 1024
 const HOP_BY_HOP = new Set([

@@ -82,6 +82,8 @@ On every boot, before `umbrel.service`, the hook:
 
 `scripts/umbra/bootstrap-device.sh` installs the runtime and hook. This is what makes an official OTA non-destructive for backend features. The **Settings UI bridge** is compiled into the UI bundle; after a stock OTA the console remains reachable at `/umbra` and the API/edge features keep working, while the Settings rows return after the fork image (or a UI rebuild). This limit is inherent to shipping compiled frontend assets in a signed OS image.
 
+The installer supports both installed generations: 2.0.1 resolves `.js` specifiers through `tsx`, while 2.1 uses Node's built-in type stripping with `.ts` specifiers and moved updates to `modules/update/update.ts`. The custom runtime uses `.ts` specifiers, which both loaders accept; update-module hooks are optional and skipped when that file is absent.
+
 ### 2.4 State layout (persistent, outside the OS image)
 
 ```

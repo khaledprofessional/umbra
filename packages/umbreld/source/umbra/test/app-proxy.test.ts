@@ -2,9 +2,9 @@ import assert from 'node:assert/strict'
 import http from 'node:http'
 import {after, before, describe, it} from 'node:test'
 
-import AppPathProxy from '../app-proxy.js'
-import type {HttpRequest, HttpResponse, UmbrelLike} from '../types.js'
-import {makeApp, makeUmbreld, makeTempDir, cleanup} from './helpers.js'
+import AppPathProxy from '../app-proxy.ts'
+import type {HttpRequest, HttpResponse, UmbrelLike} from '../types.ts'
+import {makeApp, makeUmbreld, makeTempDir, cleanup} from './helpers.ts'
 
 function response() {
 	const headers: Record<string, string | string[]> = {}

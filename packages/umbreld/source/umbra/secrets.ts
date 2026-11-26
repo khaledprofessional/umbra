@@ -2,7 +2,7 @@ import {createCipheriv, createDecipheriv, randomBytes, scryptSync} from 'node:cr
 import {chmod, readFile} from 'node:fs/promises'
 import path from 'node:path'
 
-import {ensureDir, pathExists, writeFileAtomic} from './fs-util.js'
+import {ensureDir, pathExists, writeFileAtomic} from './fs-util.ts'
 
 export type SealedSecret = {
 	v: 1

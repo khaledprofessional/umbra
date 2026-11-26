@@ -3,11 +3,11 @@ import {readFile, writeFile, mkdir} from 'node:fs/promises'
 import path from 'node:path'
 import {after, before, describe, it} from 'node:test'
 
-import AuditLog from '../audit.js'
-import ConfigStore from '../config.js'
-import {SnapshotManager} from '../extras.js'
-import SecretStore from '../secrets.js'
-import {cleanup, makeApp, makeTempDir, makeUmbreld, silentLogger} from './helpers.js'
+import AuditLog from '../audit.ts'
+import ConfigStore from '../config.ts'
+import {SnapshotManager} from '../extras.ts'
+import SecretStore from '../secrets.ts'
+import {cleanup, makeApp, makeTempDir, makeUmbreld, silentLogger} from './helpers.ts'
 
 describe('encrypted configuration snapshots', () => {
 	let directory: string

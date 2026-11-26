@@ -25,7 +25,7 @@ import LanIngress from './modules/lan-ingress/lan-ingress.js'
 import Auth from './modules/auth/auth.js'
 import Mcp, {type McpStoreSettings} from './modules/mcp/mcp.js'
 // <umbra:import>
-import Umbra from './umbra/index.js'
+import Umbra from './umbra/index.ts'
 // </umbra:import>
 import Photos, {type PhotoBackupSource, type PhotoBackupSourceRemoval} from './modules/photos/photos.js'
 

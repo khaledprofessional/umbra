@@ -1,10 +1,10 @@
 import type {McpServer} from '@modelcontextprotocol/server'
 import {z} from 'zod4'
 
-import type {McpPermissions} from '../modules/mcp/mcp.js'
-import {runTool, type McpToolContext} from '../modules/mcp/tools/shared.js'
-import {fetchAndSanitizeAvatar} from './image.js'
-import type Umbra from './index.js'
+import type {McpPermissions} from '../modules/mcp/mcp.ts'
+import {runTool, type McpToolContext} from '../modules/mcp/tools/shared.ts'
+import {fetchAndSanitizeAvatar} from './image.ts'
+import type Umbra from './index.ts'
 
 function agentName(agent: McpToolContext['agent']): string {
 	if (!agent) return 'Unknown agent'

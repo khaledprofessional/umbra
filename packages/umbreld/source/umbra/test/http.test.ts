@@ -2,9 +2,9 @@ import assert from 'node:assert/strict'
 import {Readable} from 'node:stream'
 import {after, before, describe, it} from 'node:test'
 
-import Umbra from '../index.js'
-import type {HttpRequest, HttpResponse, Principal} from '../types.js'
-import {cleanup, makeApp, makeTempDir, makeUmbreld} from './helpers.js'
+import Umbra from '../index.ts'
+import type {HttpRequest, HttpResponse, Principal} from '../types.ts'
+import {cleanup, makeApp, makeTempDir, makeUmbreld} from './helpers.ts'
 
 function response() {
 	const headers: Record<string, string | string[]> = {}

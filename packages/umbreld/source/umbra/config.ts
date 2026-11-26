@@ -1,7 +1,7 @@
 import path from 'node:path'
 
-import {readJsonOrNull, writeJsonAtomic} from './fs-util.js'
-import {asBoolean, asNumber, asString, isRecord} from './util.js'
+import {readJsonOrNull, writeJsonAtomic} from './fs-util.ts'
+import {asBoolean, asNumber, asString, isRecord} from './util.ts'
 
 export type AppAccessPolicy = 'none' | 'request' | 'manage'
 export type TerminalMode = 'deny' | 'ask' | 'always'

@@ -1,8 +1,8 @@
-import type AuditLog from './audit.js'
-import type ConfigStore from './config.js'
-import type {AppAccessPolicy, AppRequest} from './config.js'
-import type {UmbrelLike} from './types.js'
-import {HttpError, randomId} from './util.js'
+import type AuditLog from './audit.ts'
+import type ConfigStore from './config.ts'
+import type {AppAccessPolicy, AppRequest} from './config.ts'
+import type {UmbrelLike} from './types.ts'
+import {HttpError, randomId} from './util.ts'
 
 export type MemberSummary = {
 	userId: string

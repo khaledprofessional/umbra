@@ -3,10 +3,25 @@
 ## First install on a device
 
 ```sh
-git clone <your-fork> umbrel && cd umbrel
+git clone --branch umbra/main https://github.com/khaledprofessional/umbra.git umbra
+cd umbra
 sudo ./scripts/umbra/bootstrap-device.sh
 sudo systemctl restart umbrel
 ```
+
+The installer is version-aware: it supports umbrelOS **2.0.1** (`.js` imports under `tsx`) and **2.1** builds (`.ts` imports under Node type stripping, update module moved to `modules/update/update.ts`). It installs the runtime into both the persistent data partition and `/opt/umbreld/source/umbra`, reverts old bridge blocks, and applies the new ones transactionally. If a required anchor is unsupported, it reverts to stock rather than leaving umbreld half-patched.
+
+### Repair an interrupted or partial install
+
+```sh
+cd ~/umbra
+git pull
+sudo ./scripts/umbra/bootstrap-device.sh
+sudo systemctl restart umbrel
+```
+
+This is also the correct recovery after a stock OTA. Check `/home/umbrel/umbrel/umbra/pre-start.log` if the layer does not appear after restart.
+
 
 Verify:
 

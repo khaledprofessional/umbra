@@ -3,8 +3,8 @@ import {readFile} from 'node:fs/promises'
 import path from 'node:path'
 import {after, before, describe, it} from 'node:test'
 
-import ConfigStore, {defaultConfig, isValidHostname, normalizeConfig} from '../config.js'
-import {cleanup, makeTempDir} from './helpers.js'
+import ConfigStore, {defaultConfig, isValidHostname, normalizeConfig} from '../config.ts'
+import {cleanup, makeTempDir} from './helpers.ts'
 
 describe('config', () => {
 	let directory: string

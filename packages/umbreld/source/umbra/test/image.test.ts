@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import {describe, it} from 'node:test'
 import {deflateSync} from 'node:zlib'
 
-import {sanitizeImage} from '../image.js'
+import {sanitizeImage} from '../image.ts'
 
 const crcTable = (() => {
 	const table = new Uint32Array(256)
