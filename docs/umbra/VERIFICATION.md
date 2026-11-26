@@ -9,6 +9,9 @@ Environment: Windows host, Node 24.22.1, TypeScript 5.8.3. Upstream base: `getum
 | Isolated layer typecheck | `tsc -p source/umbra/tsconfig.json` | 0 errors |
 | UI typecheck | `npm run typecheck` in `packages/ui` | 0 errors |
 | UI production build | `npm run build` in `packages/ui` | built successfully (≈52 s) |
+| UI lint | `eslint` on changed UI files | 0 errors |
+| Formatting | `prettier --check source/umbra/**` | clean |
+| Translations | `node update-translations.js --validate` | passed |
 | Integration doctor | `node source/umbra/tools/integrate.mjs --check` | complete |
 | Fresh 2.0.1 anchors | integrator against a pristine copy of the 2.0.1 files | 12/12 patches applied, idempotent |
 | Shell syntax | `bash -n` on app-script, bootstrap, overlay bootstrap | 0 errors |
