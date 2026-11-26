@@ -146,9 +146,8 @@ process.on('message', (message) => {
 	}
 	if (message.type === 'shutdown') {
 		shuttingDown = true
-		void Promise.resolve(pluginModule?.deactivate?.())
-			.catch(() => {})
-			.finally(() => process.exit(0))
+		// The host has already invoked deactivate with its own timeout.
+		process.exit(0)
 	}
 })
 

@@ -219,14 +219,14 @@ export default class AppPathProxy {
 
 	#rewriteHtml(html: string, appId: string): string {
 		const prefix = `/apps/${appId}`
-		let output = html.replace(/<head(\s[^>]*)?>/i, (match) => `${match}<base href="${prefix}/">`)
-		// Root-absolute attributes are the common failure mode for apps that do
-		// not use relative URLs. Only rewrite quoted values beginning with `/`.
-		output = output.replace(
+		// Rewrite root-absolute attributes before inserting <base>, otherwise the
+		// injected base href would be rewritten a second time.
+		let output = html.replace(
 			/(\s(?:src|href|action|poster|data-src)=)(["'])\/(?!\/)([^"']*)\2/gi,
 			(_match, attribute: string, quote: string, value: string) => `${attribute}${quote}${prefix}/${value}${quote}`,
 		)
 		output = output.replace(/url\(\s*(['"]?)\/(?!\/)/gi, (_match, quote: string) => `url(${quote}${prefix}/`)
+		output = output.replace(/<head(\s[^>]*)?>/i, (match) => `${match}<base href="${prefix}/">`)
 		return output
 	}
 }
