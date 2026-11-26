@@ -1187,6 +1187,17 @@ PAGES[6].render = async () => {
 		placeholder: '{"AccountTag":"…","TunnelID":"…","TunnelSecret":"…"}',
 		style: 'min-height:90px',
 	})
+	const credentialsFile = h('input', {
+		type: 'file',
+		accept: '.json,application/json',
+		onchange: async (event) => {
+			const file = event.target.files?.[0]
+			if (!file) return
+			if (file.size > 64 * 1024) return toast('Credentials file is too large', 'bad')
+			credentials.value = await file.text()
+			toast('Credentials loaded; review and store', 'ok')
+		},
+	})
 	const accessEnabled = h('input', {type: 'checkbox', checked: settings.access.enabled})
 	const teamDomain = h('input', {
 		type: 'text',
@@ -1367,6 +1378,7 @@ PAGES[6].render = async () => {
 				h(
 					'div',
 					{class: 'form'},
+					h('div', {class: 'field'}, h('label', {text: 'Upload credentials.json (optional)'}), credentialsFile),
 					credentials,
 					h('button', {
 						class: 'btn',
