@@ -69,6 +69,12 @@ export async function getLatestRelease(umbreld: Umbreld) {
 }
 
 export async function performUpdate(umbreld: Umbreld) {
+	// <umbra:pre-update>
+	// Capture the custom configuration before the A/B update replaces root.
+	await umbreld.umbra?.snapshots
+		.create('pre-os-update', {type: 'system', id: 'os-update'})
+		.catch((error) => umbreld.logger.error('Pre-update snapshot failed', error))
+	// </umbra:pre-update>
 	setUpdateStatus({running: true, progress: 0, description: 'Updating...', error: false})
 
 	try {

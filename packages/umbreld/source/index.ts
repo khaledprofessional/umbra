@@ -24,6 +24,9 @@ import Machines from './modules/machines/machines.js'
 import LanIngress from './modules/lan-ingress/lan-ingress.js'
 import Auth from './modules/auth/auth.js'
 import Mcp, {type McpStoreSettings} from './modules/mcp/mcp.js'
+// <umbra:import>
+import Umbra from './umbra/index.js'
+// </umbra:import>
 import Photos, {type PhotoBackupSource, type PhotoBackupSourceRemoval} from './modules/photos/photos.js'
 
 import type {CloudStore} from './modules/files/cloud-types.js'
@@ -182,6 +185,9 @@ export default class Umbreld {
 	lanIngress: LanIngress
 	auth: Auth
 	mcp: Mcp
+	// <umbra:property>
+	umbra: Umbra
+	// </umbra:property>
 	photos: Photos
 	isBackupRestoreFirstStart = false
 
@@ -216,6 +222,11 @@ export default class Umbreld {
 		this.lanIngress = new LanIngress(this)
 		this.auth = new Auth(this)
 		this.mcp = new Mcp(this)
+		// <umbra:construct>
+		// Constructed after MCP so the custom layer can attach MCP tools and
+		// observe requests, but started after the server is listening.
+		this.umbra = new Umbra({umbreld: this})
+		// </umbra:construct>
 		this.photos = new Photos(this)
 	}
 
@@ -327,6 +338,13 @@ export default class Umbreld {
 			this.systemNg.start(),
 		])
 
+		// <umbra:start>
+		// Start the custom layer once core modules and the HTTP listener exist.
+		// Failures stay contained: a broken plugin or tunnel must never stop
+		// umbrelOS itself from serving the dashboard.
+		await this.umbra.start().catch((error) => this.logger.error('Failed to start Umbra', error))
+		// </umbra:start>
+
 		// Account deletion spans several modules. Retry any cleanup that was
 		// interrupted after the member was durably marked as deleted.
 		await this.user.finishPendingDeletions()
@@ -374,6 +392,11 @@ export default class Umbreld {
 				this.backups.stop(),
 				this.lanIngress.stop(),
 				this.mcp.stop(),
+				// <umbra:stop>
+				// Stop plugin sandboxes and the tunnel supervisor before apps and
+				// files begin tearing down.
+				this.umbra.stop(),
+				// </umbra:stop>
 			])
 
 			// Keep external and network storage mounted until every writer has stopped.

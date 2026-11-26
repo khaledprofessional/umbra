@@ -134,6 +134,13 @@ export async function createUmbrelMcpServer(umbreld: Umbreld, requestInfo?: Requ
 	registerFileTools(server, context, permissions)
 	if (permissions.manageSystem) registerSystemManagementTools(server, context)
 	registerMachineTools(server, context, permissions)
+	// <umbra:mcp-tools>
+	// Adds terminal, avatar, plugin, and audit tools when the credential's
+	// policy allows them. Failure must not take the native MCP tools down.
+	await umbreld.umbra.registerMcpTools(server, context, permissions).catch((error) => {
+		umbreld.mcp.logger.error('Failed to register Umbra MCP tools', error)
+	})
+	// </umbra:mcp-tools>
 	return server
 }
 
@@ -281,6 +288,11 @@ export default function createMcpEndpoint(umbreld: Umbreld, uploadDiskPreflight:
 			const tokenId = await reauthenticate(umbreld, response)
 			if (!tokenId) return
 			umbreld.mcp.recordRequest(tokenId, body)
+			// <umbra:mcp-observe>
+			void umbreld.umbra
+				.observeMcpRequest(tokenId, body, (request as {umbra?: {realIp?: string}}).umbra?.realIp)
+				.catch((error) => umbreld.mcp.logger.error('Failed to audit MCP request', error))
+			// </umbra:mcp-observe>
 			await nodeHandler(request, response, body)
 		})().catch(next)
 	})

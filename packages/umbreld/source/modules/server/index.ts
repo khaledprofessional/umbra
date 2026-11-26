@@ -141,6 +141,18 @@ class Server {
 		this.app.set('umbreld', this.umbreld)
 		this.app.set('logger', this.logger)
 
+		// <umbra:server-edge>
+		// Public-edge policy: real-IP restoration, emergency lockdown, Cloudflare
+		// Access JWT verification, origin lock, rate limits, and HSTS/CSP. Runs
+		// before every route, including tRPC and the SPA fallback.
+		this.app.use(this.umbreld.umbra.edgeMiddleware())
+		// <umbra:server-apps>
+		// Single-subdomain app path routing. The proxy authenticates the browser
+		// session, checks member sharing, and forwards the app-gateway cookie.
+		this.app.use(this.umbreld.umbra.appProxyMiddleware())
+		// </umbra:server-apps>
+		// </umbra:server-edge>
+
 		// Log requests
 		this.app.use((request, response, next) => {
 			const path = request.path.startsWith('/api/machines/first-boot/')
@@ -179,6 +191,12 @@ class Server {
 				// since they get leaked to other apps running on different ports on the same hostname
 				// due to relaxed browser sandboxing.
 				// We can't set custom headers because that not allowed by the WebSocket browser spec.
+				// <umbra:server-upgrade>
+				// Cloudflare Access and lockdown apply to upgrades too; Express
+				// middleware never sees them.
+				const umbraUpgrade = await this.umbreld.umbra.edge.authorizeUpgrade(request)
+				if (!umbraUpgrade.ok) throw new Error(umbraUpgrade.message)
+				// </umbra:server-upgrade>
 				const ticket = searchParams.get('ticket')
 				if (!ticket) throw new Error('Missing WebSocket ticket')
 				let target: WebSocketTarget = 'trpc'
@@ -253,6 +271,11 @@ class Server {
 		// MCP has its own static bearer authentication and is deliberately
 		// mounted before the dashboard SPA fallback.
 		this.app.use('/mcp', this.umbreld.mcp.router)
+		// <umbra:server-router>
+		// Umbra's own authenticated API and standalone admin console. Mounted
+		// before the SPA fallback so /umbra is never swallowed by the dashboard.
+		this.app.use('/umbra', this.umbreld.umbra.router)
+		// </umbra:server-router>
 
 		// Handle log file downloads
 		this.app.get('/logs/', async (request, response) => {
