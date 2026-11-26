@@ -13,7 +13,11 @@ async function sessionToken(): Promise<string> {
 	return csrfToken
 }
 
-export async function umbraApi<T = unknown>(path: string, options: {method?: string; body?: unknown} = {}): Promise<T> {
+export async function umbraApi<T = unknown>(
+	path: string,
+	options: {method?: string; body?: unknown} = {},
+	retry = true,
+): Promise<T> {
 	const method = (options.method ?? 'GET').toUpperCase()
 	const headers: Record<string, string> = {Accept: 'application/json'}
 	if (method !== 'GET') headers['x-umbra-csrf'] = await sessionToken()
@@ -26,8 +30,18 @@ export async function umbraApi<T = unknown>(path: string, options: {method?: str
 		body: options.body === undefined ? undefined : JSON.stringify(options.body),
 	})
 	const text = await response.text()
-	const data = text ? JSON.parse(text) : {}
-	if (!response.ok) throw new Error((data as {error?: string}).error ?? `Umbra request failed (${response.status})`)
+	let data: Record<string, unknown> = {}
+	try {
+		data = text ? (JSON.parse(text) as Record<string, unknown>) : {}
+	} catch {
+		data = {error: text.slice(0, 300)}
+	}
+	// A rotated session invalidates the cached CSRF token. Refresh it once.
+	if (response.status === 403 && retry && method !== 'GET') {
+		csrfToken = null
+		return umbraApi<T>(path, options, false)
+	}
+	if (!response.ok) throw new Error(String(data.error ?? `Umbra request failed (${response.status})`))
 	return data as T
 }
 

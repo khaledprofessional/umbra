@@ -118,10 +118,11 @@ function sanitizeJpeg(input: Buffer): SanitizedImage {
 		offset += 2
 		if (marker === 0xd9) break
 		if (marker === 0xda) {
-			// Everything from the first scan to EOI is entropy-coded data and
-			// later scan headers. Copy it verbatim: it holds no metadata, and
-			// parsing progressive scans would risk corrupting the image.
-			const eoi = input.lastIndexOf(Buffer.from([0xff, 0xd9]))
+			// Everything from the first scan to the first EOI after it is
+			// entropy-coded data and later scan headers. Copy it verbatim: it
+			// holds no metadata, and parsing progressive scans would risk
+			// corrupting the image.
+			const eoi = input.indexOf(Buffer.from([0xff, 0xd9]), offset)
 			if (eoi <= offset) throw new HttpError(400, 'Incomplete JPEG image')
 			segments.push(input.subarray(offset - 2, eoi + 2))
 			if (!sawSof) throw new HttpError(400, 'JPEG is missing its frame header')

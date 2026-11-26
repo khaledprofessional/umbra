@@ -737,6 +737,7 @@ export default class PluginManager {
 		await this.#config.update((draft) => {
 			draft.plugins.records[id].enabled = false
 		})
+		this.#clearWidgetData(id)
 		this.#audit.record({
 			type: 'plugin.disable',
 			action: `Disabled plugin ${id}`,
@@ -760,7 +761,7 @@ export default class PluginManager {
 		await this.#config.update((draft) => {
 			delete draft.plugins.records[id]
 		})
-		this.#widgetData.delete(`${id}/`)
+		this.#clearWidgetData(id)
 		this.#audit.record({
 			type: 'plugin.uninstall',
 			action: `Uninstalled plugin ${id}`,
@@ -793,6 +794,12 @@ export default class PluginManager {
 			target: id,
 		})
 		return this.get(id)
+	}
+
+	#clearWidgetData(id: string) {
+		for (const key of this.#widgetData.keys()) {
+			if (key.startsWith(`${id}/`)) this.#widgetData.delete(key)
+		}
 	}
 
 	async widgets() {

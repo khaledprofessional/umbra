@@ -155,6 +155,12 @@ describe('public edge guard', () => {
 			listCalled = true
 		})
 		assert.equal(listCalled, true)
+		// The member App Store flow must be able to bootstrap its CSRF token.
+		let sessionCalled = false
+		await guard.handle(request({path: '/umbra/api/session', url: '/umbra/api/session'}), response(), () => {
+			sessionCalled = true
+		})
+		assert.equal(sessionCalled, true)
 	})
 })
 

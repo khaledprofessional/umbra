@@ -207,6 +207,19 @@ export default class CloudflareManager {
 				if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpError(400, 'Invalid allowed email')
 			}
 		}
+		if (patch.security) {
+			const ranges: [keyof typeof patch.security, number, number][] = [
+				['loginRateLimitPerMinute', 1, 120],
+				['loginLockoutThreshold', 1, 100],
+				['loginLockoutMinutes', 1, 1_440],
+			]
+			for (const [key, min, max] of ranges) {
+				const value = patch.security[key]
+				if (value !== undefined && (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max)) {
+					throw new HttpError(400, `${key} must be an integer between ${min} and ${max}`)
+				}
+			}
+		}
 		const updated = await this.#config.update((draft) => {
 			if (patch.hostname !== undefined) draft.cloudflare.hostname = patch.hostname.trim().toLowerCase()
 			if (patch.mode !== undefined) draft.cloudflare.mode = patch.mode

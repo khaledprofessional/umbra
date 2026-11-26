@@ -183,6 +183,14 @@ export class ApprovalManager {
 		for (const id of [...this.#pending.keys()]) {
 			const entry = this.#pending.get(id)
 			if (!entry) continue
+			this.#audit.record({
+				type: 'terminal.denied',
+				action: 'Terminal command denied (shutdown)',
+				actor: {type: 'system', id: 'shutdown'},
+				target: entry.request.agentName,
+				outcome: 'denied',
+				detail: {approvalId: id, command: entry.request.command, reason},
+			})
 			this.#settle(id, {approved: false, decidedBy: 'system', reason})
 		}
 	}
@@ -218,19 +226,21 @@ export default class TerminalExecutor {
 	#audit: AuditLog
 	#approvals: ApprovalManager
 	#shell: string
+	#defaultCwd: string
 
 	constructor(
 		config: ConfigStore,
 		agents: AgentRegistry,
 		audit: AuditLog,
 		approvals: ApprovalManager,
-		options: {shell?: string} = {},
+		options: {shell?: string; defaultCwd?: string} = {},
 	) {
 		this.#config = config
 		this.#agents = agents
 		this.#audit = audit
 		this.#approvals = approvals
 		this.#shell = options.shell ?? process.env.UMBRA_SHELL ?? '/bin/bash'
+		this.#defaultCwd = options.defaultCwd ?? process.env.HOME ?? '/home/umbrel/umbrel'
 	}
 
 	get approvals() {
@@ -337,7 +347,7 @@ export default class TerminalExecutor {
 	}
 
 	async #resolveCwd(rawCwd: string | undefined, allowedRoots: string[]): Promise<string> {
-		const candidate = path.resolve(rawCwd || process.env.HOME || '/home/umbrel/umbrel')
+		const candidate = path.resolve(rawCwd || this.#defaultCwd)
 		for (const blocked of ['/proc', '/sys', '/dev']) {
 			if (candidate === blocked || candidate.startsWith(`${blocked}/`)) {
 				throw new HttpError(400, `Working directory cannot be ${blocked}`)

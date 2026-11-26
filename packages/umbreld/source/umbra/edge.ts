@@ -269,12 +269,15 @@ export default class EdgeGuard {
 	}
 
 	#isCredentialEndpoint(path: string): boolean {
+		const clean = path.split('?')[0]
+		const procedures = clean
+			.replace(/^\/trpc\//, '')
+			.split(',')
+			.map((procedure) => procedure.split('/')[0])
 		return (
-			path === '/trpc/user.login' ||
-			path === '/trpc/user.loginNative' ||
-			path === '/trpc/user.refreshNativeAccess' ||
-			path === '/login' ||
-			path.startsWith('/app-auth/')
+			procedures.some((procedure) => procedure === 'user.login' || procedure === 'user.loginNative' || procedure === 'user.refreshNativeAccess') ||
+			clean === '/login' ||
+			clean.startsWith('/app-auth/')
 		)
 	}
 
@@ -286,6 +289,10 @@ export default class EdgeGuard {
 		// Member self-service stays reachable on the public portal; these endpoints
 		// still require the member's own browser session and a CSRF token.
 		if (path.startsWith('/umbra/api/me/')) return false
+		// The official App Store's member flow bootstraps a CSRF token here. It is
+		// still session-authenticated; Access protects the admin console, not this
+		// token handshake.
+		if (path === '/umbra/api/session') return false
 		if (path.startsWith('/trpc/')) {
 			const procedures = path
 				.slice('/trpc/'.length)

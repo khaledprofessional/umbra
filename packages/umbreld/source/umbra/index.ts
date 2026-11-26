@@ -84,7 +84,9 @@ export default class Umbra {
 		this.audit = new AuditLog(this.dataDirectory)
 		this.agents = new AgentRegistry(this.dataDirectory, this.audit, this.secrets)
 		this.approvals = new ApprovalManager(this.audit)
-		this.terminal = new TerminalExecutor(this.config, this.agents, this.audit, this.approvals)
+		this.terminal = new TerminalExecutor(this.config, this.agents, this.audit, this.approvals, {
+			defaultCwd: umbreld.dataDirectory,
+		})
 		this.cloudflare = new CloudflareManager({
 			dataDirectory: this.dataDirectory,
 			config: this.config,

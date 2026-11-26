@@ -521,10 +521,15 @@ function renderApprovalCard(approval) {
 }
 
 PAGES[3].render = async () => {
-	const params = new URLSearchParams()
 	const type = h('select', {}, h('option', {value: '', text: 'All event types'}), ...['mcp.connect', 'mcp.tool', 'terminal.request', 'terminal.approved', 'terminal.denied', 'terminal.executed', 'plugin.install', 'plugin.enable', 'plugin.disable', 'plugin.uninstall', 'cloudflare.enable', 'cloudflare.disable', 'cloudflare.lockdown', 'security.block', 'auth.denied', 'access.request', 'access.approve', 'access.deny', 'snapshot.create', 'snapshot.restore', 'override.update'].map((value) => h('option', {value, text: value})))
 	const outcome = h('select', {}, h('option', {value: '', text: 'Any outcome'}), ...['success', 'failure', 'denied', 'pending'].map((value) => h('option', {value, text: value})))
 	const search = h('input', {type: 'text', placeholder: 'Search action, target, detail…'})
+	const agentMap = new Map()
+	try {
+		for (const agent of await api('/agents')) agentMap.set(agent.tokenId, agent)
+	} catch {
+		// Avatars are cosmetic; the audit view still renders without them.
+	}
 	const limit = 100
 	const load = async (before) => {
 		const query = new URLSearchParams({limit: String(limit)})
@@ -555,8 +560,17 @@ PAGES[3].render = async () => {
 							h(
 								'td',
 								{},
-								h('div', {text: event.actor.name || event.actor.id}),
-								h('div', {class: 'tiny faint', text: `${event.actor.type}${event.ip ? ` · ${event.ip}` : ''}`}),
+								h(
+									'div',
+									{class: 'row', style: 'gap:8px;flex-wrap:nowrap;align-items:center'},
+									avatar(agentMap.get(event.actor.id) ?? {label: event.actor.name || event.actor.id}),
+									h(
+										'div',
+										{},
+										h('div', {text: event.actor.name || event.actor.id}),
+										h('div', {class: 'tiny faint', text: `${event.actor.type}${event.ip ? ` · ${event.ip}` : ''}`}),
+									),
+								),
 							),
 							h(
 								'td',
