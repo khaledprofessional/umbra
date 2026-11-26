@@ -223,6 +223,14 @@ async function copyRuntime() {
 	if (!args.data) return {copied: false}
 	const source = args.from ?? path.join(args.repo, 'source', 'umbra')
 	if (!existsSync(source)) return {copied: false, reason: 'runtime source missing'}
+	// After a stock OTA, /opt/umbreld/source/umbra is gone. Restore it from the
+	// persistent copy before the bridge import is added, otherwise umbreld
+	// would fail to resolve ./umbra/index.js at boot.
+	const repoRuntime = path.join(args.repo, 'source', 'umbra')
+	if (!existsSync(repoRuntime)) {
+		await mkdir(path.dirname(repoRuntime), {recursive: true})
+		await import('node:fs/promises').then((fs) => fs.cp(source, repoRuntime, {recursive: true, force: true}))
+	}
 	const destination = path.join(args.data, 'umbra', 'runtime')
 	if (path.resolve(source) === path.resolve(destination)) return {copied: false, reason: 'already persistent'}
 	const relative = path.relative(destination, source)

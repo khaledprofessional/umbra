@@ -87,6 +87,7 @@ export default function registerUmbraMcpTools(
 		(input) =>
 			runTool(context, 'set_agent_avatar', input, async () => {
 				if (!context.agent) throw new Error('This tool requires an identified MCP credential')
+				await umbra.agents.ensureProfile(context.agent.tokenId, context.agent.label, context.agent.agentType)
 				const profile = umbra.agents.getProfile(context.agent.tokenId)
 				if (profile?.avatar && Date.now() - profile.avatar.updatedAt < 60_000) {
 					throw new Error('Avatar was updated less than a minute ago; try again later')

@@ -313,6 +313,7 @@ export default class EdgeGuard {
 
 	#consumeRate(ip: string, perMinute: number): boolean {
 		const now = Date.now()
+		if (this.#buckets.size > 10_000) this.#buckets.clear()
 		const bucket = this.#buckets.get(ip)
 		if (!bucket || now - bucket.updatedAt > 60_000) {
 			this.#buckets.set(ip, {tokens: perMinute - 1, updatedAt: now})
@@ -324,6 +325,7 @@ export default class EdgeGuard {
 	}
 
 	#failureBucket(ip: string): FailureBucket {
+		if (this.#failures.size > 10_000) this.#failures.clear()
 		const existing = this.#failures.get(ip)
 		if (existing) return existing
 		const created: FailureBucket = {failures: 0, firstFailureAt: Date.now(), lockedUntil: 0}
