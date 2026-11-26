@@ -27,6 +27,6 @@ Then open **Settings → Umbra** or `http://umbrel.local/umbra/`.
 
 ## Status
 
-Backend implementation is complete and unit-tested on Node 24 (54 tests, including real plugin sandbox activation, JWT verification, audit tamper detection, and encrypted snapshot restore). The official Settings entries are small iframe bridges; the console is a self-contained, CSP-safe app served by umbreld.
+Backend implementation is complete and unit-tested on Node 24 (58 tests, including real plugin sandbox activation, JWT verification, audit tamper detection, encrypted snapshot restore, and the authenticated HTTP API). The official Settings entries are small iframe bridges; the console is a self-contained, CSP-safe app served by umbreld.
 
 Known limits are documented rather than hidden: path routing only works for path-safe apps, a stock OTA restores backend hooks but not compiled Settings rows, and the terminal is deliberately a root capability granted by the owner.
