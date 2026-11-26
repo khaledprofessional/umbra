@@ -160,9 +160,9 @@ async function boot() {
 	const resolved = path.resolve(PLUGIN_ROOT, entryFile)
 	if (!resolved.startsWith(`${PLUGIN_ROOT}${path.sep}`)) throw new Error('Entry escapes plugin directory')
 	pluginModule = await import(pathToFileURL(resolved).href)
+	// Activation is owned by the host so lifecycle and errors are audited in one
+	// place; the child only reports that its module loaded.
 	send({type: 'ready'})
-	const activateResult = await pluginModule.activate?.(context)
-	send({type: 'activated', value: activateResult ?? null})
 }
 
 process.on('uncaughtException', (error) => {
