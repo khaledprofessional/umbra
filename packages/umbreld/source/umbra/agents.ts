@@ -265,7 +265,7 @@ export default class AgentRegistry {
 		this.#audit.record({
 			type: 'agent.avatar',
 			action: 'Updated agent avatar',
-			actor,
+			actor: {...actor, ip: profile.lastIp},
 			target: profile.label,
 			detail: {tokenId, sha256: image.sha256, mime: image.mime, width: image.width, height: image.height},
 		})

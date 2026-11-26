@@ -261,6 +261,8 @@ export default class TerminalExecutor {
 	): Promise<TerminalResult> {
 		const config = await this.#config.load()
 		if (!config.terminal.enabled) throw new HttpError(403, 'Terminal access is disabled')
+		const profile = this.#agents.getProfile(actor.tokenId)
+		const actorIp = actor.ip ?? profile?.lastIp
 		if (typeof input.command !== 'string') throw new HttpError(400, 'Command is required')
 		const command = input.command.trim()
 		if (!command) throw new HttpError(400, 'Command is empty')
@@ -276,7 +278,7 @@ export default class TerminalExecutor {
 			this.#audit.record({
 				type: 'terminal.denied',
 				action: 'Terminal access denied by policy',
-				actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actor.ip},
+				actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actorIp},
 				target: input.cwd ?? undefined,
 				outcome: 'denied',
 				detail: {command},
@@ -290,7 +292,6 @@ export default class TerminalExecutor {
 			if (matchesAllowlist(command, policy.allowlist)) {
 				effectivePolicy = 'allowlist'
 			} else {
-				const profile = this.#agents.getProfile(actor.tokenId)
 				const decision = await this.#approvals.request(
 					{
 						agentTokenId: actor.tokenId,
@@ -303,7 +304,7 @@ export default class TerminalExecutor {
 						command,
 						cwd,
 						reason: input.reason,
-						ip: actor.ip,
+						ip: actorIp,
 					},
 					config.terminal.approvalTimeoutMs,
 				)
@@ -311,7 +312,7 @@ export default class TerminalExecutor {
 					this.#audit.record({
 						type: 'terminal.denied',
 						action: 'Terminal command denied',
-						actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actor.ip},
+						actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actorIp},
 						target: cwd,
 						outcome: 'denied',
 						detail: {command, reason: decision.reason, decidedBy: decision.decidedBy},
@@ -326,7 +327,7 @@ export default class TerminalExecutor {
 		this.#audit.record({
 			type: 'terminal.executed',
 			action: 'Terminal command executed',
-			actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actor.ip},
+			actor: {type: 'agent', id: actor.tokenId, name: actor.name, ip: actorIp},
 			target: cwd,
 			outcome: result.exitCode === 0 ? 'success' : 'failure',
 			detail: {
@@ -458,3 +459,4 @@ export default class TerminalExecutor {
 		})
 	}
 }
+
