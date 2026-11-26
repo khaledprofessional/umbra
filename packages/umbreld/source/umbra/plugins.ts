@@ -480,10 +480,14 @@ export default class PluginManager {
 				const title = String(params.title ?? '').slice(0, 120)
 				const message = String(params.message ?? '').slice(0, 1000)
 				if (!title || !message) throw new Error('notify requires a title and message')
-				const notifications = this.#umbreld.notifications as
-					| {add?: (notification: unknown) => Promise<unknown>}
-					| undefined
-				if (notifications?.add) await notifications.add({title, message})
+				// umbrelOS notifications are identifiers, not free-form text. Keep
+				// plugin notifications in the plugin's own data so a plugin cannot
+				// inject arbitrary strings into the owner's notification store.
+				const filePath = path.join(this.dataDirectory, id, 'notifications.json')
+				const existing = (await readJsonOrNull(filePath)) ?? {items: []}
+				const items = Array.isArray(existing.items) ? existing.items : []
+				items.unshift({title, message, at: Date.now()})
+				await writeJsonAtomic(filePath, {items: items.slice(0, 50)}, 0o600)
 				return null
 			}
 			case 'widget.setData': {
