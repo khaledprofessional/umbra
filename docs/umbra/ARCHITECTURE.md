@@ -170,7 +170,7 @@ Permission state machine per token:
 | `always` | Pre-approved autonomous execution (owner opt-in). |
 | `inherit` | Follows the global default (`ask`). |
 
-`ask` blocks the MCP call and emits an SSE `approval` event to `/umbra/api/approvals/stream`. The prompt contains the token label, self-declared client name, agent type, exact command, working directory, and expiry. Approve/Deny is owner-only and CSRF-protected. Timeout (default 120 s) becomes a denial, so an agent cannot hang forever.
+`ask` blocks the MCP call and emits an SSE `approval` event to `/umbra/api/approvals/stream`. The prompt contains the token label, self-declared client name, agent type, exact command, working directory, and expiry. Approve/Deny is owner-only and CSRF-protected. Timeout (default 90 s) becomes a denial, so an agent cannot hang forever.
 
 Execution is non-interactive: sanitized environment, `bash -lc`, CPU rlimit, process-group kill on timeout, and a 256 KB output cap. Commands are audited with sizes and outcome, never full output (output may contain credentials).
 
@@ -346,4 +346,5 @@ systemctl restart umbrel
 ```
 
 Test coverage includes config validation, audit chain integrity/tamper detection, image sanitization (PNG/JPEG/WebP), manifest and file validation, plugin lifecycle + real sandbox activation, member request/approval flow, snapshot encryption/restore, terminal approval timeout/deny, Access JWT signatures/policy, and edge lockdown/origin/rate-limit behavior.
+
 

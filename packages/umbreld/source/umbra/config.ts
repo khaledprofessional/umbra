@@ -151,7 +151,7 @@ export function defaultConfig(): UmbraConfig {
 			allowedRoots: [],
 			defaultTimeoutMs: 30_000,
 			maxOutputBytes: 256 * 1024,
-			approvalTimeoutMs: 120_000,
+			approvalTimeoutMs: 90_000,
 		},
 		cloudflare: {
 			enabled: false,
@@ -505,3 +505,4 @@ export default class ConfigStore {
 		return next
 	}
 }
+
