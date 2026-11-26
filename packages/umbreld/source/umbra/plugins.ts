@@ -812,8 +812,10 @@ export default class PluginManager {
 		const record = config.plugins.records[id]
 		if (!record?.enabled) throw new HttpError(404, 'Plugin not found')
 		const manifest = await this.#loadManifest(id, record.version)
-		const allowed = new Set(manifest.ui?.routes?.map((route) => route.entry) ?? [])
-		if (!allowed.has(relativePath)) throw new HttpError(404, 'Not found')
+		const routes = new Set(manifest.ui?.routes?.map((route) => route.entry) ?? [])
+		// A route document may load its own assets from the plugin's ui/ tree.
+		// Nothing outside that tree or a declared route entry is served.
+		if (!routes.has(relativePath) && !relativePath.startsWith('ui/')) throw new HttpError(404, 'Not found')
 		const directory = path.join(this.pluginsDirectory, id, record.version)
 		const filePath = await resolveInside(directory, relativePath)
 		const fs = await import('node:fs/promises')

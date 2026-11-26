@@ -179,4 +179,5 @@ Content-Security-Policy: default-src 'self'; style-src 'unsafe-inline'; img-src 
 X-Content-Type-Options: nosniff
 ```
 
-Relative assets are served only when declared as a route entry; do not rely on arbitrary subpaths yet.
+Assets under the plugin's `ui/` directory are served alongside the declared route document; nothing outside `ui/` or a declared route entry is exposed.
+
