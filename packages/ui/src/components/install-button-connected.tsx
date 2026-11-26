@@ -76,7 +76,6 @@ export function InstallButtonConnectedController({
 	const isMember = userQ.data?.role === 'member'
 	// <umbra>
 	const [memberPolicy, setMemberPolicy] = useState<MemberInstallPolicy | null>(null)
-	const utils = trpcReact.useUtils()
 	useEffect(() => {
 		if (!isMember) return
 		let active = true
@@ -123,10 +122,9 @@ export function InstallButtonConnectedController({
 				if (policy === 'manage') {
 					await umbraApi('/me/install-app', {method: 'POST', body: {appId: app.id, appName: app.name}})
 					toast(t('app.installing'), {area: 'app-store'})
-					setTimeout(() => {
-						void utils.apps.list.invalidate()
-						void utils.apps.state.invalidate({appId: app.id})
-					}, 1500)
+					// The apps list polls while a transition is visible; reload once
+					// the install settles if this tab started from a not-installed state.
+					setTimeout(() => window.location.reload(), 4000)
 				} else if (policy === 'request') {
 					await umbraApi('/me/request-app', {method: 'POST', body: {appId: app.id, appName: app.name}})
 					toast(t('app-store.request-sent'), {area: 'app-store'})
