@@ -69,6 +69,23 @@ describe('member app permissions and request queue', () => {
 		assert.deepEqual(shares, [{appId: 'sonarr', sharedWith: ['1']}])
 	})
 
+	it('marks an interrupted install as failed so it can be retried', async () => {
+		const request = await access.requestApp({
+			userId: '2',
+			userName: 'Bob',
+			appId: 'readarr',
+			appName: 'Readarr',
+		})
+		await config.update((draft) => {
+			const entry = draft.access.requests.find((candidate) => candidate.id === request.id)
+			if (entry) entry.status = 'installing'
+		})
+		await access.reconcileInterruptedInstalls()
+		const [reconciled] = (await access.listRequests()).filter((entry) => entry.id === request.id)
+		assert.equal(reconciled.status, 'failed')
+		assert.match(reconciled.error ?? '', /interrupted/i)
+	})
+
 	it('denies a request without installing', async () => {
 		const request = await access.requestApp({
 			userId: '2',

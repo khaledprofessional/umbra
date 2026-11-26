@@ -53,6 +53,17 @@ export default class AppAccessManager {
 		return (await this.policyFor(userId)) === 'manage'
 	}
 
+	/** A restart during installation must not leave a request "installing" forever. */
+	async reconcileInterruptedInstalls() {
+		await this.#config.update((draft) => {
+			for (const request of draft.access.requests) {
+				if (request.status !== 'installing') continue
+				request.status = 'failed'
+				request.error = 'Installation was interrupted by a restart; approve it again to retry.'
+			}
+		})
+	}
+
 	async listMembers(): Promise<MemberSummary[]> {
 		const config = await this.#config.load()
 		const members = (await this.#umbreld.user?.listMembers?.()) ?? []

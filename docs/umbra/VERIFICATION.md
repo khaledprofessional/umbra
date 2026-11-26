@@ -4,7 +4,7 @@ Environment: Windows host, Node 24.22.1, TypeScript 5.8.3. Upstream base: `getum
 
 | Check | Command | Result |
 | --- | --- | --- |
-| Umbra unit/integration tests | `npx tsx --test source/umbra/test/*.test.ts` | 62 tests, 61 pass, 1 skipped (bash unavailable on Windows) |
+| Umbra unit/integration tests | `npx tsx --test source/umbra/test/*.test.ts` | 63 tests, 62 pass, 1 skipped (bash unavailable on Windows) |
 | umbreld typecheck (real deps) | `npm run typecheck` in `packages/umbreld` | 0 errors |
 | Isolated layer typecheck | `tsc -p source/umbra/tsconfig.json` | 0 errors |
 | UI typecheck | `npm run typecheck` in `packages/ui` | 0 errors |
@@ -38,3 +38,4 @@ Not executed in this environment (require Linux/hardware/credentials):
 - a live Cloudflare Tunnel and Access application;
 - Docker-dependent tunnel lifecycle and `unshare --net` sandbox behavior;
 - umbreld's VM test suite (native bindings such as `drivelist` are Linux/device-specific).
+

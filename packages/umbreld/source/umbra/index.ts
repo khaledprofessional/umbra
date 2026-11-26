@@ -133,6 +133,9 @@ export default class Umbra {
 		await this.config.load()
 		this.#started = true
 		await this.agents.pruneOrphanAvatars().catch(() => {})
+		await this.access
+			.reconcileInterruptedInstalls()
+			.catch((error) => this.logger.error('Failed to reconcile app requests', error))
 		this.audit.record({
 			type: 'system.start',
 			action: 'Umbra started',
