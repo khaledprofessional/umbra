@@ -348,3 +348,4 @@ systemctl restart umbrel
 Test coverage includes config validation, audit chain integrity/tamper detection, image sanitization (PNG/JPEG/WebP), manifest and file validation, plugin lifecycle + real sandbox activation, member request/approval flow, snapshot encryption/restore, terminal approval timeout/deny, Access JWT signatures/policy, and edge lockdown/origin/rate-limit behavior.
 
 
+

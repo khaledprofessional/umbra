@@ -136,6 +136,25 @@ describe('public edge guard', () => {
 			called = true
 		})
 		assert.equal(called, true)
+		// Owner-only mutations require Access …
+		const install = response()
+		await guard.handle(
+			request({
+				method: 'POST',
+				path: '/trpc/apps.install',
+				url: '/trpc/apps.install',
+				headers: {host: 'umbrel.example.com', origin: 'https://umbrel.example.com'},
+			}),
+			install,
+			() => {},
+		)
+		assert.equal(install.statusCode, 403)
+		// … while member-readable procedures stay on the portal.
+		let listCalled = false
+		await guard.handle(request({path: '/trpc/apps.list', url: '/trpc/apps.list'}), response(), () => {
+			listCalled = true
+		})
+		assert.equal(listCalled, true)
 	})
 })
 

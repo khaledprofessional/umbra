@@ -10,6 +10,29 @@ type RateBucket = {tokens: number; updatedAt: number}
 
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1'])
 const IPV4 = /^\d{1,3}(?:\.\d{1,3}){3}$/
+// Owner-only or security-sensitive tRPC procedures. Everything else remains
+// reachable through the public portal because umbreld still enforces the
+// account role; blocking all of /trpc would lock members out of their apps.
+const SENSITIVE_TRPC = [
+	'system.',
+	'mcp.',
+	'backup.',
+	'backups.',
+	'hardware.',
+	'machines.',
+	'apps.install',
+	'apps.uninstall',
+	'apps.update',
+	'apps.start',
+	'apps.stop',
+	'apps.restart',
+	'apps.addRepository',
+	'apps.removeRepository',
+	'apps.installReview',
+	'user.createUser',
+	'user.deleteUser',
+	'user.resetUserPassword',
+]
 
 function normalizeIp(value: string | undefined): string | undefined {
 	if (!value) return undefined
@@ -260,9 +283,21 @@ export default class EdgeGuard {
 		if (path.startsWith('/assets/') || path.startsWith('/static/')) return false
 		if (path.startsWith('/api/accounts/')) return false
 		if (path.startsWith('/app-auth/')) return false
+		// Member self-service stays reachable on the public portal; these endpoints
+		// still require the member's own browser session and a CSRF token.
+		if (path.startsWith('/umbra/api/me/')) return false
 		if (path.startsWith('/trpc/')) {
-			const procedure = path.slice('/trpc/'.length).split('/')[0].split('?')[0]
-			return !publicProcedures.includes(procedure)
+			const procedures = path
+				.slice('/trpc/'.length)
+				.split('/')[0]
+				.split('?')[0]
+				.split(',')
+				.filter(Boolean)
+			return procedures.some(
+				(procedure) =>
+					!publicProcedures.includes(procedure) &&
+					SENSITIVE_TRPC.some((prefix) => procedure === prefix || procedure.startsWith(prefix)),
+			)
 		}
 		return ['/settings', '/umbra', '/mcp', '/terminal', '/api', '/logs'].some(
 			(prefix) => path === prefix || path.startsWith(`${prefix}/`),
