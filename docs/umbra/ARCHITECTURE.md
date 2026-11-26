@@ -43,7 +43,7 @@ docs/umbra/                          # this blueprint + operations
 umbra-fork.json                      # base tag + integration contract
 ```
 
-Custom modules never live inside an upstream module directory. The only upstream edits are eleven blocks, each wrapped in a named marker:
+Custom modules never live inside an upstream module directory. The only upstream edits are twelve blocks, each wrapped in a named marker:
 
 ```ts
 // <umbra:server-edge>
@@ -77,7 +77,7 @@ A stock signed update replaces `/opt/umbreld`, including our bridge lines. The d
 On every boot, before `umbrel.service`, the hook:
 
 1. verifies the persistent runtime copy under `umbra/runtime`;
-2. re-applies the eleven bridge blocks to the newly installed upstream source;
+2. re-applies the twelve bridge blocks to the newly installed upstream source;
 3. copies the runtime back to `/opt/umbreld/source/umbra` if it was removed.
 
 `scripts/umbra/bootstrap-device.sh` installs the runtime and hook. This is what makes an official OTA non-destructive for backend features. The **Settings UI bridge** is compiled into the UI bundle; after a stock OTA the console remains reachable at `/umbra` and the API/edge features keep working, while the Settings rows return after the fork image (or a UI rebuild). This limit is inherent to shipping compiled frontend assets in a signed OS image.
@@ -346,3 +346,4 @@ systemctl restart umbrel
 ```
 
 Test coverage includes config validation, audit chain integrity/tamper detection, image sanitization (PNG/JPEG/WebP), manifest and file validation, plugin lifecycle + real sandbox activation, member request/approval flow, snapshot encryption/restore, terminal approval timeout/deny, Access JWT signatures/policy, and edge lockdown/origin/rate-limit behavior.
+
