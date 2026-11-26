@@ -15,6 +15,7 @@ Umbra is a non-destructive fork layer for **umbrelOS 2.0.1**. It adds:
 | [Architecture blueprint](docs/umbra/ARCHITECTURE.md) | upstream sync model, data layout, MCP/plugin/Cloudflare flows, threat model |
 | [Plugin API](docs/umbra/PLUGIN_API.md) | strict manifest schema, sandbox contract, AI generation loop |
 | [Operations](docs/umbra/OPERATIONS.md) | install, OTA recovery, tests, API map, troubleshooting |
+| [Verification](docs/umbra/VERIFICATION.md) | what was tested, what requires a device |
 
 ## Quick start
 
