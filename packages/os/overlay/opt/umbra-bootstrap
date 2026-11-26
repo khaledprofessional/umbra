@@ -1,0 +1,50 @@
+#!/bin/bash
+# First-boot / post-OTA bootstrap for the Umbra layer.
+#
+# Runs as root before umbrel.service (via a drop-in on
+# umbrel-custom-pre-start.service). It is idempotent and must never block boot.
+set -u
+
+DATA_DIR="${UMBREL_ROOT:-/home/umbrel/umbrel}"
+SOURCE_RUNTIME="/opt/umbreld/source/umbra"
+RUNTIME_DIR="${DATA_DIR}/umbra/runtime"
+HOOK_PATH="${DATA_DIR}/custom-hooks/pre-start"
+LOG="${DATA_DIR}/umbra/bootstrap.log"
+
+[ -d "${SOURCE_RUNTIME}" ] || exit 0
+mkdir -p "${DATA_DIR}/umbra" "${DATA_DIR}/custom-hooks" 2>/dev/null || exit 0
+chmod 700 "${DATA_DIR}/umbra" 2>/dev/null || true
+
+# Refresh the persistent runtime when the image ships a newer copy.
+if [ ! -f "${RUNTIME_DIR}/index.ts" ] || [ "${SOURCE_RUNTIME}/index.ts" -nt "${RUNTIME_DIR}/index.ts" ]; then
+	rm -rf "${RUNTIME_DIR}.new"
+	if cp -a "${SOURCE_RUNTIME}" "${RUNTIME_DIR}.new" 2>>"${LOG}"; then
+		rm -rf "${RUNTIME_DIR}"
+		mv "${RUNTIME_DIR}.new" "${RUNTIME_DIR}"
+	fi
+fi
+
+if [ ! -x "${HOOK_PATH}" ]; then
+	cat >"${HOOK_PATH}" <<'HOOK'
+#!/bin/bash
+# Managed by Umbra. Re-applies the custom layer after an official OTA replaced
+# /opt/umbreld, using only data-partition files. Never blocks umbreld startup.
+set -u
+DATA_DIR="${UMBREL_ROOT:-/home/umbrel/umbrel}"
+RUNTIME_DIR="${DATA_DIR}/umbra/runtime"
+LOG="${DATA_DIR}/umbra/pre-start.log"
+if [ ! -f "${RUNTIME_DIR}/tools/integrate.mjs" ]; then
+	exit 0
+fi
+if command -v node >/dev/null 2>&1; then
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --from "${RUNTIME_DIR}" --quiet >>"${LOG}" 2>&1 || true
+fi
+exit 0
+HOOK
+	chmod 755 "${HOOK_PATH}"
+fi
+
+if command -v node >/dev/null 2>&1 && [ -f "${RUNTIME_DIR}/tools/integrate.mjs" ]; then
+	node "${RUNTIME_DIR}/tools/integrate.mjs" --repo /opt/umbreld --data "${DATA_DIR}" --quiet >>"${LOG}" 2>&1 || true
+fi
+exit 0

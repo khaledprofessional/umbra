@@ -1,0 +1,11 @@
+{
+	"name": "Umbra",
+	"description": "Custom umbrelOS fork: plugins, native MCP agent controls, member app governance, and hardened Cloudflare exposure.",
+	"upstream": "getumbrel/umbrel",
+	"upstreamRemote": "upstream",
+	"base": "2.0.1",
+	"customModule": "packages/umbreld/source/umbra",
+	"persistentRuntime": "umbra/runtime",
+	"dataDirectory": "umbra",
+	"integrationMarker": "umbra"
+}
