@@ -803,6 +803,69 @@ PAGES[4].render = async () => {
 	)
 }
 
+function pluginSettingsForm(plugin) {
+	const fields = plugin.manifest?.settings ?? []
+	if (!fields.length) return null
+	const values = plugin.settings ?? {}
+	const inputs = {}
+	const controls = fields.map((field) => {
+		const current = values[field.key] ?? field.default
+		let control
+		if (field.type === 'boolean') {
+			control = h('input', {type: 'checkbox', checked: Boolean(current)})
+		} else if (field.type === 'number') {
+			control = h('input', {type: 'number', value: current ?? '', min: field.min, max: field.max})
+		} else if (field.type === 'select') {
+			control = h(
+				'select',
+				{},
+				...(field.options ?? []).map((option) =>
+					h('option', {value: option.value, selected: current === option.value, text: option.label}),
+				),
+			)
+		} else {
+			control = h('input', {type: 'text', value: current ?? ''})
+		}
+		inputs[field.key] = {field, control}
+		return h(
+			'div',
+			{class: 'field'},
+			h('label', {text: field.label}),
+			control,
+			field.description && h('span', {class: 'hint', text: field.description}),
+		)
+	})
+	return h(
+		'details',
+		{class: 'plugin-settings'},
+		h('summary', {class: 'tiny muted', text: 'Plugin settings'}),
+		h(
+			'div',
+			{class: 'form', style: 'margin-top:10px'},
+			...controls,
+			h('button', {
+				class: 'btn sm',
+				text: 'Save settings',
+				onclick: async () => {
+					const settings = {}
+					for (const [key, {field, control}] of Object.entries(inputs)) {
+						if (field.type === 'boolean') settings[key] = control.checked
+						else if (field.type === 'number') {
+							if (control.value.trim() !== '') settings[key] = Number(control.value)
+						} else settings[key] = control.value
+					}
+					try {
+						await api(`/plugins/${plugin.id}/settings`, {method: 'POST', body: {settings}})
+						toast('Plugin settings saved', 'ok')
+					} catch (error) {
+						toast(error.message, 'bad')
+					}
+				},
+			}),
+		),
+	)
+}
+
 function pluginCard(plugin) {
 	const manifest = plugin.manifest || {}
 	return card(
@@ -838,6 +901,7 @@ function pluginCard(plugin) {
 				)
 			: null,
 		plugin.lastError && h('p', {class: 'tiny', style: 'color:var(--red)', text: plugin.lastError}),
+		pluginSettingsForm(plugin),
 		h(
 			'div',
 			{class: 'row', style: 'margin-top:14px'},
