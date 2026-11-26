@@ -444,6 +444,11 @@ export default class CloudflareManager {
 			'docker',
 			[
 				...common,
+				// The image's non-root user cannot read the 0600 credentials file
+				// mounted from the data partition. Root inside a capability-dropped,
+				// no-new-privileges container is the narrowest way to keep the file
+				// unreadable on the host.
+				...(mode === 'credentials' ? ['--user', '0:0'] : []),
 				'-v',
 				`${this.directory}:/etc/cloudflared:ro`,
 				config.cloudflare.image,

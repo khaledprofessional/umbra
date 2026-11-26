@@ -168,6 +168,22 @@ export default class EdgeGuard {
 			})
 		}
 
+		if (publicRequest && (path.startsWith('/umbra/api/') || path.startsWith('/trpc/'))) {
+			if (!this.#consumeRate(`${realIp}:api`, 300)) {
+				this.#audit.record({
+					type: 'security.block',
+					action: 'API rate limit exceeded',
+					actor: {type: 'system', id: 'edge'},
+					ip: realIp,
+					target: path,
+					outcome: 'denied',
+				})
+				response.setHeader('Retry-After', '60')
+				this.#deny(response, 429, 'Too many requests')
+				return
+			}
+		}
+
 		if (publicRequest && cloudflare.access.enabled && this.#isProtected(path, config.cloudflare.access.publicProcedures)) {
 			const token =
 				header(request, 'cf-access-jwt-assertion') ??
