@@ -19,9 +19,22 @@ type Props = {
 	onInstallClick?: () => void
 	onOpenClick?: () => void
 	disabled?: boolean
+	// <umbra>
+	// Members without install rights get "Request app" instead of "Install".
+	installLabel?: string
+	// </umbra>
 }
 
-export function InstallButton({installSize, progress, state, onInstallClick, onOpenClick, disabled, ...props}: Props) {
+export function InstallButton({
+	installSize,
+	progress,
+	state,
+	onInstallClick,
+	onOpenClick,
+	disabled,
+	installLabel,
+	...props
+}: Props) {
 	return (
 		<ProgressButton
 			variant={state === 'updating' ? 'default' : 'primary'}
@@ -48,7 +61,7 @@ export function InstallButton({installSize, progress, state, onInstallClick, onO
 			disabled={disabled || !getInstallButtonAction(state)}
 			{...props}
 		>
-			<ButtonContentForState state={state} installSize={installSize} progress={progress} />
+			<ButtonContentForState state={state} installSize={installSize} progress={progress} installLabel={installLabel} />
 		</ProgressButton>
 	)
 }
@@ -63,17 +76,19 @@ function ButtonContentForState({
 	state,
 	installSize,
 	progress,
+	installLabel,
 }: {
 	state: AppStateOrLoading
 	installSize?: string
 	progress?: number
+	installLabel?: string
 }) {
 	const {t} = useTranslation()
 	switch (state) {
 		case 'not-installed':
 			return (
 				<>
-					{t('app.install')}{' '}
+					{installLabel ?? t('app.install')}{' '}
 					<span className='-tracking-normal whitespace-nowrap uppercase opacity-40'>{installSize}</span>
 				</>
 			)

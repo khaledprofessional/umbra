@@ -16,6 +16,9 @@ import {pickerTargetParams, type PickerDialogKey, type PickerTarget} from '@/mod
 import {TwoFactorDialog} from '@/routes/settings/2fa'
 import AdvancedSettingsDrawerOrDialog from '@/routes/settings/advanced'
 import {SoftwareUpdateConfirmDialog} from '@/routes/settings/software-update-confirm'
+// <umbra>
+import {UmbraSettings} from '@/routes/settings/umbra'
+// </umbra>
 import {trpcReact} from '@/trpc/trpc'
 import {withDialog} from '@/utils/dialog'
 import {IS_ANDROID} from '@/utils/misc'
@@ -179,6 +182,42 @@ export function Settings() {
 							)}
 							{!isMember && <Route path='/apps' Component={AppSettingsListDrawerOrDialog} />}
 							{!isMember && <Route path='/mcp' Component={McpDialog} />}
+							{/* <umbra> */}
+							{!isMember && (
+								<>
+									<Route
+										path='/umbra'
+										element={
+											<UmbraSettings
+												page='overview'
+												title='Umbra'
+												description='Plugins, AI agent permissions, audit logs, and power-user controls.'
+											/>
+										}
+									/>
+									<Route
+										path='/umbra/cloudflare'
+										element={
+											<UmbraSettings
+												page='cloudflare'
+												title='Cloudflare exposure'
+												description='Publish this umbrelOS on one hostname with Zero Trust protection and a kill switch.'
+											/>
+										}
+									/>
+									<Route
+										path='/umbra/agents'
+										element={
+											<UmbraSettings
+												page='audit'
+												title='AI Agent logs'
+												description='Connections, tool calls, terminal approvals, and plugin changes by AI agents.'
+											/>
+										}
+									/>
+								</>
+							)}
+							{/* </umbra> */}
 							<Route path='/advanced/:advancedSelection?' Component={AdvancedSettingsDrawerOrDialog} />
 							<Route path='/storage/*' Component={StorageManagerDialog} />
 						</Routes>

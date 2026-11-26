@@ -1,5 +1,5 @@
 import prettyBytes from 'pretty-bytes'
-import {createContext, useContext, useImperativeHandle, useState} from 'react'
+import {createContext, useContext, useEffect, useImperativeHandle, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 
 import {Button} from '@/components/ui/button'
@@ -16,6 +16,9 @@ import {canPresentUpdateAction, isAppUpdateAvailable} from '@/modules/app-store/
 import {useApps} from '@/providers/apps'
 import {useAllAvailableApps} from '@/providers/available-apps'
 import {RegistryApp, trpcReact} from '@/trpc/trpc'
+// <umbra>
+import {type MemberInstallPolicy, umbraApi} from '@/lib/umbra-api'
+// </umbra>
 
 import {InstallButton} from './install-button'
 
@@ -42,6 +45,10 @@ type ReadyController = {
 	updatePending: boolean
 	canOfferUpdate: boolean
 	isAppIdAmbiguous: boolean
+	// <umbra>
+	installLabel?: string
+	installDisabled: boolean
+	// </umbra>
 }
 
 type InstallController = LoadingController | ReadyController
@@ -67,6 +74,22 @@ export function InstallButtonConnectedController({
 	// Members browse the app store read-only, only the owner can install
 	const userQ = trpcReact.user.get.useQuery()
 	const isMember = userQ.data?.role === 'member'
+	// <umbra>
+	const [memberPolicy, setMemberPolicy] = useState<MemberInstallPolicy | null>(null)
+	const utils = trpcReact.useUtils()
+	useEffect(() => {
+		if (!isMember) return
+		let active = true
+		umbraApi<{policy: MemberInstallPolicy}>('/me/policy')
+			.then((data) => {
+				if (active) setMemberPolicy(data.policy)
+			})
+			.catch(() => {})
+		return () => {
+			active = false
+		}
+	}, [isMember])
+	// </umbra>
 	const {apps, ambiguousAppIds} = useAllAvailableApps()
 	const actions = useStoreActions()
 	const installReviewQ = trpcReact.apps.installReview.useQuery(
@@ -90,8 +113,31 @@ export function InstallButtonConnectedController({
 	async function install() {
 		if (!ready) return
 		if (isMember) {
-			toast(t('app-store.ask-owner-to-install'), {area: 'app-store'})
+			// <umbra>
+			// Members with the "manage" policy install through the same backend
+			// path as the owner; everyone else creates a request for the owner.
+			try {
+				const policy =
+					memberPolicy ?? (await umbraApi<{policy: MemberInstallPolicy}>('/me/policy').then((data) => data.policy))
+				if (!memberPolicy) setMemberPolicy(policy)
+				if (policy === 'manage') {
+					await umbraApi('/me/install-app', {method: 'POST', body: {appId: app.id, appName: app.name}})
+					toast(t('app.installing'), {area: 'app-store'})
+					setTimeout(() => {
+						void utils.apps.list.invalidate()
+						void utils.apps.state.invalidate({appId: app.id})
+					}, 1500)
+				} else if (policy === 'request') {
+					await umbraApi('/me/request-app', {method: 'POST', body: {appId: app.id, appName: app.name}})
+					toast(t('app-store.request-sent'), {area: 'app-store'})
+				} else {
+					toast(t('app-store.ask-owner-to-install'), {area: 'app-store'})
+				}
+			} catch (error) {
+				toast.error(error instanceof Error ? error.message : String(error), {area: 'app-store'})
+			}
 			return
+			// </umbra>
 		}
 		if (isAppIdAmbiguous) {
 			toast(t('app-store.app-id-conflict'), {area: 'app-store'})
@@ -152,6 +198,15 @@ export function InstallButtonConnectedController({
 				updatePending: updateApp.isPending,
 				canOfferUpdate,
 				isAppIdAmbiguous,
+				// <umbra>
+				installLabel:
+					isMember && memberPolicy !== 'manage'
+						? memberPolicy === 'request'
+							? t('app-store.request-app', {defaultValue: 'Request app'})
+							: t('app.install')
+						: undefined,
+				installDisabled: isMember && (memberPolicy === 'none' || memberPolicy === null),
+				// </umbra>
 			}
 		: {status: 'loading', app, installSize, progress: appInstall.progress}
 
@@ -210,7 +265,11 @@ export function InstallButtonConnectedView() {
 					state={controller.installState}
 					onInstallClick={controller.install}
 					onOpenClick={controller.open}
-					disabled={controller.isAppIdAmbiguous && controller.installState === 'not-installed'}
+					installLabel={controller.installLabel}
+					disabled={
+						(controller.isAppIdAmbiguous && controller.installState === 'not-installed') ||
+						controller.installDisabled
+					}
 				/>
 				{controller.canOfferUpdate && (
 					<Button
