@@ -30,7 +30,7 @@ journalctl -u umbrel -n 100 --no-pager | grep -i umbra
 curl -s http://127.0.0.1:22080/umbra/api/health   # 401 without a session is expected
 ```
 
-Open **Settings → Umbra**. The console is also directly reachable at `/umbra/`.
+Open **Settings → Umbra**. The same data is also available in the standalone console at `/umbra/` for plugin scaffolding and deep audit export.
 
 ## Pulling a new upstream release
 

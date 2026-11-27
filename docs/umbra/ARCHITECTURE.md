@@ -80,7 +80,7 @@ On every boot, before `umbrel.service`, the hook:
 2. re-applies the twelve bridge blocks to the newly installed upstream source;
 3. copies the runtime back to `/opt/umbreld/source/umbra` if it was removed.
 
-`scripts/umbra/bootstrap-device.sh` installs the runtime and hook. This is what makes an official OTA non-destructive for backend features. The **Settings UI bridge** is compiled into the UI bundle; after a stock OTA the console remains reachable at `/umbra` and the API/edge features keep working, while the Settings rows return after the fork image (or a UI rebuild). This limit is inherent to shipping compiled frontend assets in a signed OS image.
+`scripts/umbra/bootstrap-device.sh` installs the runtime and hook. This is what makes an official OTA non-destructive for backend features. The **Settings UI** is compiled into the UI bundle; after a stock OTA the console remains reachable at `/umbra` and the API/edge features keep working, while the native Settings rows return after the fork image or a UI overlay install. This limit is inherent to shipping compiled frontend assets in a signed OS image.
 
 The installer supports both installed generations: 2.0.1 resolves `.js` specifiers through `tsx`, while 2.1 uses Node's built-in type stripping with `.ts` specifiers and moved updates to `modules/update/update.ts`. The custom runtime uses `.ts` specifiers, which both loaders accept; update-module hooks are optional and skipped when that file is absent.
 
@@ -251,7 +251,7 @@ Only one hostname is configured. App containers are never published; the path pr
 
 ### 6.2 Configuration in official Settings
 
-Settings → **Cloudflare exposure** (iframe of `/umbra/#/cloudflare`) provides:
+Settings → **Cloudflare exposure** (a native umbrelOS page using the shared Dialog/Card/Button/Switch kit) provides:
 
 - hostname, token vs credentials-file mode, cloudflared image;
 - tunnel token / credentials upload (encrypted at rest, write-only in the API);
