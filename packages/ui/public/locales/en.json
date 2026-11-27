@@ -227,6 +227,8 @@
   "app-store.app-not-found.title": "This app isn't available",
   "app-store.ask-owner-to-install": "Please ask the owner to install this app",
   "app-store.ask-owner-to-update": "Please ask the owner to update this app",
+  "app-store.request-app": "Request app",
+  "app-store.request-sent": "Request sent to the owner",
   "app-store.browse-category-apps": "Browse {{category}} apps",
   "app-store.category.ai": "AI",
   "app-store.category.all": "All apps",

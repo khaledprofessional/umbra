@@ -16,7 +16,7 @@ import {
 	PiUsersThreeFill,
 	PiWrenchFill,
 } from 'react-icons/pi'
-import {TbSparkles} from 'react-icons/tb'
+import {TbCloud, TbSparkles} from 'react-icons/tb'
 
 import {normalizeSearchText} from '@/components/cmdk-search'
 import {links} from '@/constants/links'
@@ -39,6 +39,9 @@ export type SettingsItemId =
 	| 'migration'
 	| 'device-info'
 	| 'mcp'
+	| 'umbra'
+	| 'umbra-cloudflare'
+	| 'umbra-agents'
 	| 'file-sharing'
 	| 'backups'
 	| 'advanced'
@@ -81,6 +84,9 @@ const SETTINGS_PAGE_ITEM_ORDER: SettingsItemId[] = [
 	'wifi',
 	'device-info',
 	'mcp',
+	'umbra',
+	'umbra-cloudflare',
+	'umbra-agents',
 	'advanced',
 	'troubleshoot',
 	'support',
@@ -355,6 +361,39 @@ export function createSettingsCatalog(
 				t('mcp-app-store'),
 				t('mcp-manage-system'),
 			],
+		},
+		{
+			kind: 'page',
+			id: 'umbra',
+			category: 'system',
+			command: {},
+			icon: TbSparkles,
+			title: 'Umbra',
+			description: 'Plugins, AI agent permissions, audit logs, and power-user controls.',
+			to: '/settings/umbra',
+			keywords: ['umbra', 'plugin', 'plugins', 'modding', 'agent', 'audit', 'snapshots', 'quotas'],
+		},
+		{
+			kind: 'page',
+			id: 'umbra-cloudflare',
+			category: 'system',
+			command: {},
+			icon: TbCloud,
+			title: 'Cloudflare exposure',
+			description: 'Publish this umbrelOS on one hostname with Zero Trust protection and a kill switch.',
+			to: '/settings/umbra/cloudflare',
+			keywords: ['cloudflare', 'tunnel', 'public', 'domain', 'subdomain', 'zero trust', 'access', 'remote'],
+		},
+		{
+			kind: 'page',
+			id: 'umbra-agents',
+			category: 'system',
+			command: {},
+			icon: TbSparkles,
+			title: 'AI Agent logs',
+			description: 'Connections, tool calls, terminal approvals, and plugin changes by AI agents.',
+			to: '/settings/umbra/agents',
+			keywords: ['agent', 'mcp', 'audit', 'logs', 'terminal', 'approval', 'avatar'],
 		},
 		{
 			kind: 'page',

@@ -22,6 +22,7 @@ type Props = {
 	/** Starts an app that isn't running. Without it (members) the button reads Not running */
 	onStartClick?: () => void
 	disabled?: boolean
+	installLabel?: string
 }
 
 export function InstallButton({
@@ -32,6 +33,7 @@ export function InstallButton({
 	onOpenClick,
 	onStartClick,
 	disabled,
+	installLabel,
 	...props
 }: Props) {
 	const action = getInstallButtonAction(state)
@@ -64,7 +66,13 @@ export function InstallButton({
 			disabled={disabled || !canAct}
 			{...props}
 		>
-			<ButtonContentForState state={state} installSize={installSize} progress={progress} startable={!!onStartClick} />
+			<ButtonContentForState
+				state={state}
+				installSize={installSize}
+				progress={progress}
+				startable={!!onStartClick}
+				installLabel={installLabel}
+			/>
 		</ProgressButton>
 	)
 }
@@ -83,18 +91,20 @@ function ButtonContentForState({
 	installSize,
 	progress,
 	startable,
+	installLabel,
 }: {
 	state: AppStateOrLoading
 	installSize?: string
 	progress?: number
 	startable: boolean
+	installLabel?: string
 }) {
 	const {t} = useTranslation()
 	switch (state) {
 		case 'not-installed':
 			return (
 				<>
-					{t('app.install')}{' '}
+					{installLabel ?? t('app.install')}{' '}
 					<span className='-tracking-normal whitespace-nowrap uppercase opacity-40 contrast-more:opacity-75'>
 						{installSize}
 					</span>
