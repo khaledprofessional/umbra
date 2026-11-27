@@ -45,5 +45,10 @@ export async function umbraApi<T = unknown>(
 	return data as T
 }
 
+export const UmbraApi = {
+	get: <T = unknown>(path: string) => umbraApi<T>(path),
+	post: <T = unknown>(path: string, body?: unknown) => umbraApi<T>(path, {method: 'POST', body}),
+}
+
 export type MemberInstallPolicy = 'none' | 'request' | 'manage'
 // </umbra>
